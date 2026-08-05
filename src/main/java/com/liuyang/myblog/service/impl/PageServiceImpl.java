@@ -12,12 +12,18 @@ import org.springframework.util.StringUtils;
 import java.util.List;
 
 @Service
+/**
+ * 独立页面业务逻辑接口实现类
+ */
 public class PageServiceImpl implements PageService {
     private final BlogPageMapper blogPageMapper;
 
     public PageServiceImpl(BlogPageMapper blogPageMapper) {
         this.blogPageMapper = blogPageMapper;
     }
+    /**
+     * 获取BySlug
+     */
 
     @Override
     public BlogPage getBySlug(String slug) {
@@ -33,12 +39,24 @@ public class PageServiceImpl implements PageService {
         }
         return page;
     }
-
     @Override
     public List<BlogPage> listAll() {
         return blogPageMapper.selectList(new LambdaQueryWrapper<BlogPage>()
                 .orderByAsc(BlogPage::getId));
     }
+
+    /**
+     * 获取所有已发布的页面
+     */
+    @Override
+    public List<BlogPage> listActive() {
+        return blogPageMapper.selectList(new LambdaQueryWrapper<BlogPage>()
+                .eq(BlogPage::getStatus, Boolean.TRUE)
+                .orderByAsc(BlogPage::getId));
+    }
+    /**
+     * 获取ById
+     */
 
     @Override
     public BlogPage getById(Long id) {
@@ -48,6 +66,9 @@ public class PageServiceImpl implements PageService {
         }
         return page;
     }
+    /**
+     * 创建
+     */
 
     @Override
     public Long create(PageDTO dto) {
@@ -60,6 +81,9 @@ public class PageServiceImpl implements PageService {
         blogPageMapper.insert(page);
         return page.getId();
     }
+    /**
+     * 更新
+     */
 
     @Override
     public void update(Long id, PageDTO dto) {
@@ -68,13 +92,19 @@ public class PageServiceImpl implements PageService {
         copy(dto, page);
         blogPageMapper.updateById(page);
     }
+    /**
+     * 删除
+     */
 
     @Override
     public void delete(Long id) {
         if (blogPageMapper.deleteById(id) == 0) {
             throw BusinessException.notFound("page not found");
         }
-    }
+    }    /**
+     * validate
+     */
+
 
     private void validate(PageDTO dto) {
         if (dto == null || !StringUtils.hasText(dto.getTitle())
@@ -82,7 +112,10 @@ public class PageServiceImpl implements PageService {
                 || !StringUtils.hasText(dto.getContent())) {
             throw BusinessException.badRequest("title, slug and content are required");
         }
-    }
+    }    /**
+     * copy
+     */
+
 
     private void copy(PageDTO source, BlogPage target) {
         target.setTitle(source.getTitle());
