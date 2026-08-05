@@ -14,6 +14,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/comments")
+/**
+ * 评论管理控制器
+ */
 public class CommentController {
     private final CommentService commentService;
 
@@ -27,6 +30,9 @@ public class CommentController {
                                                              @RequestParam(required = false) Long size) {
         return ApiResponse.ok(commentService.pagePublicComments(articleId, page, size));
     }
+    /**
+     * 创建评论
+     */
 
     @PostMapping
     public ApiResponse<Long> createComment(@RequestBody CommentDTO commentDTO) {

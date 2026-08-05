@@ -16,6 +16,9 @@ import org.springframework.util.StringUtils;
 import java.util.List;
 
 @Service
+/**
+ * 分类业务逻辑接口实现类
+ */
 public class CategoryServiceImpl implements CategoryService {
     private final BlogCategoryMapper blogCategoryMapper;
     private final BlogArticleMapper blogArticleMapper;
@@ -24,6 +27,9 @@ public class CategoryServiceImpl implements CategoryService {
         this.blogCategoryMapper = blogCategoryMapper;
         this.blogArticleMapper = blogArticleMapper;
     }
+    /**
+     * 列表查询Categories
+     */
 
     @Override
     public List<BlogCategory> listCategories() {
@@ -31,6 +37,9 @@ public class CategoryServiceImpl implements CategoryService {
                 .orderByAsc(BlogCategory::getSort)
                 .orderByAsc(BlogCategory::getId));
     }
+    /**
+     * 获取分类
+     */
 
     @Override
     public BlogCategory getCategory(Long id) {
@@ -40,6 +49,9 @@ public class CategoryServiceImpl implements CategoryService {
         }
         return category;
     }
+    /**
+     * 创建分类
+     */
 
     @Override
     public Long createCategory(CategoryDTO categoryDTO) {
@@ -49,6 +61,9 @@ public class CategoryServiceImpl implements CategoryService {
         blogCategoryMapper.insert(category);
         return category.getId();
     }
+    /**
+     * 更新分类
+     */
 
     @Override
     public void updateCategory(Long id, CategoryDTO categoryDTO) {
@@ -57,6 +72,9 @@ public class CategoryServiceImpl implements CategoryService {
         copy(categoryDTO, category);
         blogCategoryMapper.updateById(category);
     }
+    /**
+     * 删除分类
+     */
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -67,13 +85,19 @@ public class CategoryServiceImpl implements CategoryService {
         blogArticleMapper.update(null, new LambdaUpdateWrapper<BlogArticle>()
                 .eq(BlogArticle::getCategoryId, id)
                 .set(BlogArticle::getCategoryId, null));
-    }
+    }    /**
+     * validate
+     */
+
 
     private void validate(CategoryDTO categoryDTO) {
         if (categoryDTO == null || !StringUtils.hasText(categoryDTO.getName())) {
             throw BusinessException.badRequest("category name is required");
         }
-    }
+    }    /**
+     * copy
+     */
+
 
     private void copy(CategoryDTO source, BlogCategory target) {
         target.setName(source.getName());

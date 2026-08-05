@@ -11,12 +11,18 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/archives")
+/**
+ * 文章归档管理控制器
+ */
 public class ArchiveController {
     private final ArticleService articleService;
 
     public ArchiveController(ArticleService articleService) {
         this.articleService = articleService;
     }
+    /**
+     * 列表查询归档
+     */
 
     @GetMapping
     public ApiResponse<List<ArchiveVO>> listArchives() {

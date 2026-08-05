@@ -5,14 +5,32 @@ import com.liuyang.myblog.domain.po.BlogTag;
 
 import java.util.List;
 
-public interface TagService {
-    List<BlogTag> listTags();
+/**
+ * 标签业务逻辑接口
+ */
+public interface TagService {/**
+ * 列表查询标签
+ */
 
-    BlogTag getTag(Long id);
+    List<BlogTag> listTags();    /**
+     * 获取标签
+     */
 
-    Long createTag(TagDTO tagDTO);
 
-    void updateTag(Long id, TagDTO tagDTO);
+    BlogTag getTag(Long id);    /**
+     * 创建标签
+     */
+
+
+    Long createTag(TagDTO tagDTO);    /**
+     * 更新标签
+     */
+
+
+    void updateTag(Long id, TagDTO tagDTO);    /**
+     * 删除标签
+     */
+
 
     void deleteTag(Long id);
 }

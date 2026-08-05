@@ -23,6 +23,6 @@ mybatis-plus:
 
 blog:
   auth:
-    password-salt: ${BLOG_AUTH_PASSWORD_SALT:myblog-default-salt}
+    password-salt: myblog-salt-2025
   upload:
-    dir: ${BLOG_UPLOAD_DIR:uploads}
+    dir: E:/myblogupload

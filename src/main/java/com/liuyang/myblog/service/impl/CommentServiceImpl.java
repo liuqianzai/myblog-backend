@@ -15,6 +15,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 @Service
+/**
+ * 评论业务逻辑接口实现类
+ */
 public class CommentServiceImpl implements CommentService {
     private final BlogCommentMapper blogCommentMapper;
     private final BlogArticleMapper blogArticleMapper;
@@ -23,6 +26,9 @@ public class CommentServiceImpl implements CommentService {
         this.blogCommentMapper = blogCommentMapper;
         this.blogArticleMapper = blogArticleMapper;
     }
+    /**
+     * 分页查询Public评论
+     */
 
     @Override
     public PageResult<BlogComment> pagePublicComments(Long articleId, Long page, Long size) {
@@ -31,11 +37,17 @@ public class CommentServiceImpl implements CommentService {
         }
         return pageComments(articleId, Boolean.TRUE, page, size);
     }
+    /**
+     * 分页查询Admin评论
+     */
 
     @Override
     public PageResult<BlogComment> pageAdminComments(Long articleId, Boolean approved, Long page, Long size) {
         return pageComments(articleId, approved, page, size);
     }
+    /**
+     * 创建评论
+     */
 
     @Override
     public Long createComment(CommentDTO commentDTO) {
@@ -58,6 +70,9 @@ public class CommentServiceImpl implements CommentService {
         blogCommentMapper.insert(comment);
         return comment.getId();
     }
+    /**
+     * review评论
+     */
 
     @Override
     public void reviewComment(Long id, CommentReviewDTO reviewDTO) {
@@ -71,13 +86,19 @@ public class CommentServiceImpl implements CommentService {
         comment.setApproved(reviewDTO.getApproved());
         blogCommentMapper.updateById(comment);
     }
+    /**
+     * 删除评论
+     */
 
     @Override
     public void deleteComment(Long id) {
         if (blogCommentMapper.deleteById(id) == 0) {
             throw BusinessException.notFound("comment not found");
         }
-    }
+    }    /**
+     * 分页查询评论
+     */
+
 
     private PageResult<BlogComment> pageComments(Long articleId, Boolean approved, Long page, Long size) {
         long pageNo = page == null || page < 1 ? 1 : page;

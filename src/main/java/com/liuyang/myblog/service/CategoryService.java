@@ -5,14 +5,32 @@ import com.liuyang.myblog.domain.po.BlogCategory;
 
 import java.util.List;
 
-public interface CategoryService {
-    List<BlogCategory> listCategories();
+/**
+ * 分类业务逻辑接口
+ */
+public interface CategoryService {/**
+ * 列表查询Categories
+ */
 
-    BlogCategory getCategory(Long id);
+    List<BlogCategory> listCategories();    /**
+     * 获取分类
+     */
 
-    Long createCategory(CategoryDTO categoryDTO);
 
-    void updateCategory(Long id, CategoryDTO categoryDTO);
+    BlogCategory getCategory(Long id);    /**
+     * 创建分类
+     */
+
+
+    Long createCategory(CategoryDTO categoryDTO);    /**
+     * 更新分类
+     */
+
+
+    void updateCategory(Long id, CategoryDTO categoryDTO);    /**
+     * 删除分类
+     */
+
 
     void deleteCategory(Long id);
 }

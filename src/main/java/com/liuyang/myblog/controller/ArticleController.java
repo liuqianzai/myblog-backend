@@ -12,6 +12,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/articles")
+/**
+ * 文章管理控制器
+ */
 public class ArticleController {
     private final ArticleService articleService;
 
@@ -27,6 +30,9 @@ public class ArticleController {
                                                            @RequestParam(required = false) Long tagId) {
         return ApiResponse.ok(articleService.pageArticles(page, size, keyword, Boolean.TRUE, categoryId, tagId));
     }
+    /**
+     * 获取文章
+     */
 
     @GetMapping("/{id}")
     public ApiResponse<ArticleVO> getArticle(@PathVariable Long id) {

@@ -4,12 +4,27 @@ import com.liuyang.myblog.domain.dto.LoginDTO;
 import com.liuyang.myblog.domain.dto.ChangePasswordDTO;
 import com.liuyang.myblog.domain.vo.LoginVO;
 
-public interface AuthService {
-    LoginVO login(LoginDTO loginDTO);
+/**
+ * 认证与授权业务逻辑接口
+ */
+public interface AuthService {/**
+ * login
+ */
 
-    Long verifyToken(String token);
+    LoginVO login(LoginDTO loginDTO);    /**
+     * 校验令牌
+     */
 
-    void logout(String token);
+
+    Long verifyToken(String token);    /**
+     * logout
+     */
+
+
+    void logout(String token);    /**
+     * change密码
+     */
+
 
     void changePassword(Long userId, ChangePasswordDTO changePasswordDTO);
 }

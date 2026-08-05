@@ -5,10 +5,22 @@ import com.liuyang.myblog.domain.po.BlogArticleTag;
 
 import java.util.List;
 
-public interface ArticleTagService {
-    List<BlogArticleTag> listByArticleId(Long articleId);
+/**
+ * 文章标签关联业务逻辑接口
+ */
+public interface ArticleTagService {/**
+ * 列表查询By文章Id
+ */
 
-    Long createRelation(ArticleTagDTO articleTagDTO);
+    List<BlogArticleTag> listByArticleId(Long articleId);    /**
+     * 创建Relation
+     */
+
+
+    Long createRelation(ArticleTagDTO articleTagDTO);    /**
+     * 删除Relation
+     */
+
 
     void deleteRelation(Long id);
 }

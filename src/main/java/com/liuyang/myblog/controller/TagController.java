@@ -17,33 +17,51 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/tags")
+/**
+ * 标签管理控制器
+ */
 public class TagController {
     private final TagService tagService;
 
     public TagController(TagService tagService) {
         this.tagService = tagService;
     }
+    /**
+     * 列表查询标签
+     */
 
     @GetMapping
     public ApiResponse<List<BlogTag>> listTags() {
         return ApiResponse.ok(tagService.listTags());
     }
+    /**
+     * 获取标签
+     */
 
     @GetMapping("/{id}")
     public ApiResponse<BlogTag> getTag(@PathVariable Long id) {
         return ApiResponse.ok(tagService.getTag(id));
     }
+    /**
+     * 创建标签
+     */
 
     @PostMapping
     public ApiResponse<Long> createTag(@RequestBody TagDTO tagDTO) {
         return ApiResponse.ok(tagService.createTag(tagDTO));
     }
+    /**
+     * 更新标签
+     */
 
     @PutMapping("/{id}")
     public ApiResponse<Void> updateTag(@PathVariable Long id, @RequestBody TagDTO tagDTO) {
         tagService.updateTag(id, tagDTO);
         return ApiResponse.ok();
     }
+    /**
+     * 删除标签
+     */
 
     @DeleteMapping("/{id}")
     public ApiResponse<Void> deleteTag(@PathVariable Long id) {

@@ -12,17 +12,26 @@ import org.springframework.util.StringUtils;
 import java.util.List;
 
 @Service
+/**
+ * 系统配置业务逻辑接口实现类
+ */
 public class ConfigServiceImpl implements ConfigService {
     private final BlogConfigMapper blogConfigMapper;
 
     public ConfigServiceImpl(BlogConfigMapper blogConfigMapper) {
         this.blogConfigMapper = blogConfigMapper;
     }
+    /**
+     * 列表查询配置
+     */
 
     @Override
     public List<BlogConfig> listConfigs() {
         return blogConfigMapper.selectList(new LambdaQueryWrapper<BlogConfig>().orderByAsc(BlogConfig::getConfigKey));
     }
+    /**
+     * 获取配置
+     */
 
     @Override
     public BlogConfig getConfig(String key) {
@@ -32,6 +41,9 @@ public class ConfigServiceImpl implements ConfigService {
         }
         return config;
     }
+    /**
+     * 创建配置
+     */
 
     @Override
     public void saveConfig(ConfigDTO configDTO) {
@@ -48,6 +60,9 @@ public class ConfigServiceImpl implements ConfigService {
             blogConfigMapper.updateById(config);
         }
     }
+    /**
+     * 删除配置
+     */
 
     @Override
     public void deleteConfig(String key) {

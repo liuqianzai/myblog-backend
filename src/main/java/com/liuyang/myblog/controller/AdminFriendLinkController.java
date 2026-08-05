@@ -17,33 +17,51 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/admin/friend-links")
+/**
+ * 后台友情链接管理控制器
+ */
 public class AdminFriendLinkController {
     private final FriendLinkService friendLinkService;
 
     public AdminFriendLinkController(FriendLinkService friendLinkService) {
         this.friendLinkService = friendLinkService;
     }
+    /**
+     * 列表查询All
+     */
 
     @GetMapping
     public ApiResponse<List<BlogFriendLink>> listAll() {
         return ApiResponse.ok(friendLinkService.listAll());
     }
+    /**
+     * 获取ById
+     */
 
     @GetMapping("/{id}")
     public ApiResponse<BlogFriendLink> getById(@PathVariable Long id) {
         return ApiResponse.ok(friendLinkService.getById(id));
     }
+    /**
+     * 创建
+     */
 
     @PostMapping
     public ApiResponse<Long> create(@RequestBody FriendLinkDTO dto) {
         return ApiResponse.ok(friendLinkService.create(dto));
     }
+    /**
+     * 更新
+     */
 
     @PutMapping("/{id}")
     public ApiResponse<Void> update(@PathVariable Long id, @RequestBody FriendLinkDTO dto) {
         friendLinkService.update(id, dto);
         return ApiResponse.ok();
     }
+    /**
+     * 删除
+     */
 
     @DeleteMapping("/{id}")
     public ApiResponse<Void> delete(@PathVariable Long id) {

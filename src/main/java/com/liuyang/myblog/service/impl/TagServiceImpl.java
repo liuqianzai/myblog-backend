@@ -15,6 +15,9 @@ import org.springframework.util.StringUtils;
 import java.util.List;
 
 @Service
+/**
+ * 标签业务逻辑接口实现类
+ */
 public class TagServiceImpl implements TagService {
     private final BlogTagMapper blogTagMapper;
     private final BlogArticleTagMapper blogArticleTagMapper;
@@ -23,11 +26,17 @@ public class TagServiceImpl implements TagService {
         this.blogTagMapper = blogTagMapper;
         this.blogArticleTagMapper = blogArticleTagMapper;
     }
+    /**
+     * 列表查询标签
+     */
 
     @Override
     public List<BlogTag> listTags() {
         return blogTagMapper.selectList(new LambdaQueryWrapper<BlogTag>().orderByAsc(BlogTag::getName));
     }
+    /**
+     * 获取标签
+     */
 
     @Override
     public BlogTag getTag(Long id) {
@@ -37,6 +46,9 @@ public class TagServiceImpl implements TagService {
         }
         return tag;
     }
+    /**
+     * 创建标签
+     */
 
     @Override
     public Long createTag(TagDTO tagDTO) {
@@ -47,6 +59,9 @@ public class TagServiceImpl implements TagService {
         blogTagMapper.insert(tag);
         return tag.getId();
     }
+    /**
+     * 更新标签
+     */
 
     @Override
     public void updateTag(Long id, TagDTO tagDTO) {
@@ -56,6 +71,9 @@ public class TagServiceImpl implements TagService {
         tag.setColor(tagDTO.getColor());
         blogTagMapper.updateById(tag);
     }
+    /**
+     * 删除标签
+     */
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -64,7 +82,10 @@ public class TagServiceImpl implements TagService {
             throw BusinessException.notFound("tag not found");
         }
         blogArticleTagMapper.delete(new LambdaQueryWrapper<BlogArticleTag>().eq(BlogArticleTag::getTagId, id));
-    }
+    }    /**
+     * validate标签
+     */
+
 
     private void validateTag(TagDTO tagDTO) {
         if (tagDTO == null || !StringUtils.hasText(tagDTO.getName())) {

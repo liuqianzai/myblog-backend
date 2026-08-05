@@ -9,12 +9,18 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/admin/dashboard")
+/**
+ * 后台仪表盘数据统计管理控制器
+ */
 public class AdminDashboardController {
     private final DashboardService dashboardService;
 
     public AdminDashboardController(DashboardService dashboardService) {
         this.dashboardService = dashboardService;
     }
+    /**
+     * 获取统计数据
+     */
 
     @GetMapping("/stats")
     public ApiResponse<DashboardStatsVO> getStats() {

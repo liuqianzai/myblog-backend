@@ -20,6 +20,9 @@ import java.util.Set;
 import java.util.UUID;
 
 @Service
+/**
+ * 文件业务逻辑接口实现类
+ */
 public class FileServiceImpl implements FileService {
     private static final Set<String> ALLOWED_EXTENSIONS = Set.of("jpg", "jpeg", "png", "gif", "webp");
 
@@ -31,6 +34,9 @@ public class FileServiceImpl implements FileService {
     public FileServiceImpl(BlogFileMapper blogFileMapper) {
         this.blogFileMapper = blogFileMapper;
     }
+    /**
+     * 上传图片
+     */
 
     @Override
     public FileUploadVO uploadImage(MultipartFile file) {
@@ -69,7 +75,10 @@ public class FileServiceImpl implements FileService {
         blogFileMapper.insert(blogFile);
 
         return new FileUploadVO(url, filename);
-    }
+    }    /**
+     * 获取Extension
+     */
+
 
     private String getExtension(String filename) {
         if (!StringUtils.hasText(filename) || !filename.contains(".")) {

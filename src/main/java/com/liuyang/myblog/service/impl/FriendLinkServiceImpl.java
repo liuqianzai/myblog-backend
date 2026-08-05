@@ -12,12 +12,18 @@ import org.springframework.util.StringUtils;
 import java.util.List;
 
 @Service
+/**
+ * 友情链接业务逻辑接口实现类
+ */
 public class FriendLinkServiceImpl implements FriendLinkService {
     private final BlogFriendLinkMapper blogFriendLinkMapper;
 
     public FriendLinkServiceImpl(BlogFriendLinkMapper blogFriendLinkMapper) {
         this.blogFriendLinkMapper = blogFriendLinkMapper;
     }
+    /**
+     * 列表查询Visible
+     */
 
     @Override
     public List<BlogFriendLink> listVisible() {
@@ -26,6 +32,9 @@ public class FriendLinkServiceImpl implements FriendLinkService {
                 .orderByAsc(BlogFriendLink::getSort)
                 .orderByAsc(BlogFriendLink::getId));
     }
+    /**
+     * 列表查询All
+     */
 
     @Override
     public List<BlogFriendLink> listAll() {
@@ -33,6 +42,9 @@ public class FriendLinkServiceImpl implements FriendLinkService {
                 .orderByAsc(BlogFriendLink::getSort)
                 .orderByAsc(BlogFriendLink::getId));
     }
+    /**
+     * 获取ById
+     */
 
     @Override
     public BlogFriendLink getById(Long id) {
@@ -42,6 +54,9 @@ public class FriendLinkServiceImpl implements FriendLinkService {
         }
         return link;
     }
+    /**
+     * 创建
+     */
 
     @Override
     public Long create(FriendLinkDTO dto) {
@@ -54,6 +69,9 @@ public class FriendLinkServiceImpl implements FriendLinkService {
         blogFriendLinkMapper.insert(link);
         return link.getId();
     }
+    /**
+     * 更新
+     */
 
     @Override
     public void update(Long id, FriendLinkDTO dto) {
@@ -62,19 +80,28 @@ public class FriendLinkServiceImpl implements FriendLinkService {
         copy(dto, link);
         blogFriendLinkMapper.updateById(link);
     }
+    /**
+     * 删除
+     */
 
     @Override
     public void delete(Long id) {
         if (blogFriendLinkMapper.deleteById(id) == 0) {
             throw BusinessException.notFound("friend link not found");
         }
-    }
+    }    /**
+     * validate
+     */
+
 
     private void validate(FriendLinkDTO dto) {
         if (dto == null || !StringUtils.hasText(dto.getName()) || !StringUtils.hasText(dto.getUrl())) {
             throw BusinessException.badRequest("name and url are required");
         }
-    }
+    }    /**
+     * copy
+     */
+
 
     private void copy(FriendLinkDTO source, BlogFriendLink target) {
         target.setName(source.getName());

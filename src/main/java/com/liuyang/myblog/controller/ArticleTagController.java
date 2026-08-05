@@ -17,22 +17,34 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/article-tags")
+/**
+ * 文章标签关联管理控制器
+ */
 public class ArticleTagController {
     private final ArticleTagService articleTagService;
 
     public ArticleTagController(ArticleTagService articleTagService) {
         this.articleTagService = articleTagService;
     }
+    /**
+     * 列表查询By文章Id
+     */
 
     @GetMapping
     public ApiResponse<List<BlogArticleTag>> listByArticleId(@RequestParam Long articleId) {
         return ApiResponse.ok(articleTagService.listByArticleId(articleId));
     }
+    /**
+     * 创建Relation
+     */
 
     @PostMapping
     public ApiResponse<Long> createRelation(@RequestBody ArticleTagDTO articleTagDTO) {
         return ApiResponse.ok(articleTagService.createRelation(articleTagDTO));
     }
+    /**
+     * 删除Relation
+     */
 
     @DeleteMapping("/{id}")
     public ApiResponse<Void> deleteRelation(@PathVariable Long id) {

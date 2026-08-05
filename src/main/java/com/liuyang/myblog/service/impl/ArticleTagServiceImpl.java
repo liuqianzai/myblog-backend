@@ -11,12 +11,18 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
+/**
+ * 文章标签关联业务逻辑接口实现类
+ */
 public class ArticleTagServiceImpl implements ArticleTagService {
     private final BlogArticleTagMapper blogArticleTagMapper;
 
     public ArticleTagServiceImpl(BlogArticleTagMapper blogArticleTagMapper) {
         this.blogArticleTagMapper = blogArticleTagMapper;
     }
+    /**
+     * 列表查询By文章Id
+     */
 
     @Override
     public List<BlogArticleTag> listByArticleId(Long articleId) {
@@ -26,6 +32,9 @@ public class ArticleTagServiceImpl implements ArticleTagService {
         return blogArticleTagMapper.selectList(new LambdaQueryWrapper<BlogArticleTag>()
                 .eq(BlogArticleTag::getArticleId, articleId));
     }
+    /**
+     * 创建Relation
+     */
 
     @Override
     public Long createRelation(ArticleTagDTO articleTagDTO) {
@@ -38,6 +47,9 @@ public class ArticleTagServiceImpl implements ArticleTagService {
         blogArticleTagMapper.insert(relation);
         return relation.getId();
     }
+    /**
+     * 删除Relation
+     */
 
     @Override
     public void deleteRelation(Long id) {

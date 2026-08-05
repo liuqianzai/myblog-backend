@@ -16,6 +16,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/admin/comments")
+/**
+ * 后台评论管理控制器
+ */
 public class AdminCommentController {
     private final CommentService commentService;
 
@@ -30,12 +33,18 @@ public class AdminCommentController {
                                                              @RequestParam(required = false) Long size) {
         return ApiResponse.ok(commentService.pageAdminComments(articleId, approved, page, size));
     }
+    /**
+     * review评论
+     */
 
     @PatchMapping("/{id}/review")
     public ApiResponse<Void> reviewComment(@PathVariable Long id, @RequestBody CommentReviewDTO reviewDTO) {
         commentService.reviewComment(id, reviewDTO);
         return ApiResponse.ok();
     }
+    /**
+     * 删除评论
+     */
 
     @DeleteMapping("/{id}")
     public ApiResponse<Void> deleteComment(@PathVariable Long id) {

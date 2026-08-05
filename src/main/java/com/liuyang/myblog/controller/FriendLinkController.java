@@ -17,12 +17,18 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/friend-links")
+/**
+ * 友情链接管理控制器
+ */
 public class FriendLinkController {
     private final FriendLinkService friendLinkService;
 
     public FriendLinkController(FriendLinkService friendLinkService) {
         this.friendLinkService = friendLinkService;
     }
+    /**
+     * 列表查询Visible
+     */
 
     @GetMapping
     public ApiResponse<List<BlogFriendLink>> listVisible() {

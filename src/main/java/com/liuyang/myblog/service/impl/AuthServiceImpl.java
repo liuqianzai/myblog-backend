@@ -20,6 +20,9 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
+/**
+ * 认证与授权业务逻辑接口实现类
+ */
 public class AuthServiceImpl implements AuthService {
     private final BlogUserMapper blogUserMapper;
     private final Map<String, Long> tokenStore = new ConcurrentHashMap<>();
@@ -30,6 +33,9 @@ public class AuthServiceImpl implements AuthService {
     public AuthServiceImpl(BlogUserMapper blogUserMapper) {
         this.blogUserMapper = blogUserMapper;
     }
+    /**
+     * login
+     */
 
     @Override
     public LoginVO login(LoginDTO loginDTO) {
@@ -53,6 +59,9 @@ public class AuthServiceImpl implements AuthService {
         tokenStore.put(token, user.getId());
         return new LoginVO(token, user.getUsername(), user.getNickname());
     }
+    /**
+     * 校验令牌
+     */
 
     @Override
     public Long verifyToken(String token) {
@@ -61,6 +70,9 @@ public class AuthServiceImpl implements AuthService {
         }
         return tokenStore.get(token);
     }
+    /**
+     * logout
+     */
 
     @Override
     public void logout(String token) {
@@ -68,6 +80,9 @@ public class AuthServiceImpl implements AuthService {
             tokenStore.remove(token);
         }
     }
+    /**
+     * change密码
+     */
 
     @Override
     public void changePassword(Long userId, ChangePasswordDTO changePasswordDTO) {
@@ -93,7 +108,10 @@ public class AuthServiceImpl implements AuthService {
         }
         user.setPasswordHash(sha256(changePasswordDTO.getNewPassword() + passwordSalt));
         blogUserMapper.updateById(user);
-    }
+    }    /**
+     * sha256
+     */
+
 
     private String sha256(String value) {
         try {

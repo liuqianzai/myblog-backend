@@ -14,17 +14,26 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/auth")
+/**
+ * 认证与授权管理控制器
+ */
 public class AuthController {
     private final AuthService authService;
 
     public AuthController(AuthService authService) {
         this.authService = authService;
     }
+    /**
+     * login
+     */
 
     @PostMapping("/login")
     public ApiResponse<LoginVO> login(@RequestBody LoginDTO loginDTO) {
         return ApiResponse.ok(authService.login(loginDTO));
     }
+    /**
+     * logout
+     */
 
     @PostMapping("/logout")
     public ApiResponse<Void> logout(HttpServletRequest request) {
@@ -32,6 +41,9 @@ public class AuthController {
         authService.logout(token);
         return ApiResponse.ok();
     }
+    /**
+     * change密码
+     */
 
     @PostMapping("/password")
     public ApiResponse<Void> changePassword(@RequestBody ChangePasswordDTO changePasswordDTO,

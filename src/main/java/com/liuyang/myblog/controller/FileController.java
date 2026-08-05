@@ -11,6 +11,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/files")
+/**
+ * 文件管理控制器
+ */
 public class FileController {
     private final FileService fileService;
 

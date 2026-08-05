@@ -16,6 +16,9 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
+/**
+ * 仪表盘数据统计业务逻辑接口实现类
+ */
 public class DashboardServiceImpl implements DashboardService {
     private final BlogArticleMapper blogArticleMapper;
     private final BlogTagMapper blogTagMapper;
@@ -31,6 +34,9 @@ public class DashboardServiceImpl implements DashboardService {
         this.blogCommentMapper = blogCommentMapper;
         this.blogCategoryMapper = blogCategoryMapper;
     }
+    /**
+     * 获取统计数据
+     */
 
     @Override
     public DashboardStatsVO getStats() {

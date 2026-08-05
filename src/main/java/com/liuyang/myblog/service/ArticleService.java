@@ -7,16 +7,37 @@ import com.liuyang.myblog.domain.vo.ArticleVO;
 
 import java.util.List;
 
-public interface ArticleService {
-    PageResult<ArticleVO> pageArticles(Long page, Long size, String keyword, Boolean status, Long categoryId, Long tagId);
+/**
+ * 文章业务逻辑接口
+ */
+public interface ArticleService {/**
+ * 分页查询文章
+ */
 
-    ArticleVO getArticle(Long id, boolean increaseViewCount, Boolean status);
+    PageResult<ArticleVO> pageArticles(Long page, Long size, String keyword, Boolean status, Long categoryId, Long tagId);    /**
+     * 获取文章
+     */
 
-    Long createArticle(ArticleDTO articleDTO);
 
-    void updateArticle(Long id, ArticleDTO articleDTO);
+    ArticleVO getArticle(Long id, boolean increaseViewCount, Boolean status);    /**
+     * 创建文章
+     */
 
-    void deleteArticle(Long id);
+
+    Long createArticle(ArticleDTO articleDTO);    /**
+     * 更新文章
+     */
+
+
+    void updateArticle(Long id, ArticleDTO articleDTO);    /**
+     * 删除文章
+     */
+
+
+    void deleteArticle(Long id);    /**
+     * 列表查询归档
+     */
+
 
     List<ArchiveVO> listArchives();
 }

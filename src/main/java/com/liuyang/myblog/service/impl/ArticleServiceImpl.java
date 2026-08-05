@@ -27,6 +27,9 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
+/**
+ * 文章业务逻辑接口实现类
+ */
 public class ArticleServiceImpl implements ArticleService {
     private final BlogArticleMapper blogArticleMapper;
     private final BlogArticleTagMapper blogArticleTagMapper;
@@ -42,6 +45,9 @@ public class ArticleServiceImpl implements ArticleService {
         this.blogTagMapper = blogTagMapper;
         this.blogCategoryMapper = blogCategoryMapper;
     }
+    /**
+     * 分页查询文章
+     */
 
     @Override
     public PageResult<ArticleVO> pageArticles(Long page, Long size, String keyword, Boolean status, Long categoryId, Long tagId) {
@@ -78,6 +84,9 @@ public class ArticleServiceImpl implements ArticleService {
         List<ArticleVO> records = fillTags(result.getRecords());
         return new PageResult<>(result.getTotal(), result.getCurrent(), result.getSize(), records);
     }
+    /**
+     * 获取文章
+     */
 
     @Override
     public ArticleVO getArticle(Long id, boolean increaseViewCount, Boolean status) {
@@ -99,6 +108,9 @@ public class ArticleServiceImpl implements ArticleService {
         articleVO.setTags(getTags(id));
         return articleVO;
     }
+    /**
+     * 创建文章
+     */
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -113,6 +125,9 @@ public class ArticleServiceImpl implements ArticleService {
         saveArticleTags(article.getId(), articleDTO.getTagIds());
         return article.getId();
     }
+    /**
+     * 更新文章
+     */
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -126,6 +141,9 @@ public class ArticleServiceImpl implements ArticleService {
         blogArticleMapper.updateById(article);
         saveArticleTags(id, articleDTO.getTagIds());
     }
+    /**
+     * 删除文章
+     */
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -134,13 +152,19 @@ public class ArticleServiceImpl implements ArticleService {
             throw BusinessException.notFound("article not found");
         }
         blogArticleTagMapper.delete(new LambdaQueryWrapper<BlogArticleTag>().eq(BlogArticleTag::getArticleId, id));
-    }
+    }    /**
+     * validate文章
+     */
+
 
     private void validateArticle(ArticleDTO articleDTO) {
         if (articleDTO == null || !StringUtils.hasText(articleDTO.getTitle()) || !StringUtils.hasText(articleDTO.getContent())) {
             throw BusinessException.badRequest("title and content are required");
         }
-    }
+    }    /**
+     * copy
+     */
+
 
     private void copy(ArticleDTO source, BlogArticle target) {
         if (source.getCategoryId() != null && blogCategoryMapper.selectById(source.getCategoryId()) == null) {
@@ -153,7 +177,10 @@ public class ArticleServiceImpl implements ArticleService {
         target.setCategoryId(source.getCategoryId());
         target.setIsTop(Boolean.TRUE.equals(source.getIsTop()));
         target.setStatus(source.getStatus() == null ? Boolean.TRUE : source.getStatus());
-    }
+    }    /**
+     * 创建文章标签
+     */
+
 
     private void saveArticleTags(Long articleId, List<Long> tagIds) {
         blogArticleTagMapper.delete(new LambdaQueryWrapper<BlogArticleTag>().eq(BlogArticleTag::getArticleId, articleId));
@@ -170,7 +197,10 @@ public class ArticleServiceImpl implements ArticleService {
             relation.setTagId(tagId);
             blogArticleTagMapper.insert(relation);
         }
-    }
+    }    /**
+     * fill标签
+     */
+
 
     private List<ArticleVO> fillTags(List<BlogArticle> articles) {
         if (articles == null || articles.isEmpty()) {
@@ -195,7 +225,10 @@ public class ArticleServiceImpl implements ArticleService {
             articleVO.setTags(tags);
             return articleVO;
         }).toList();
-    }
+    }    /**
+     * 获取标签
+     */
+
 
     private List<BlogTag> getTags(Long articleId) {
         List<BlogArticleTag> relations = blogArticleTagMapper.selectList(new LambdaQueryWrapper<BlogArticleTag>()
@@ -206,11 +239,17 @@ public class ArticleServiceImpl implements ArticleService {
         }
         return blogTagMapper.selectBatchIds(tagIds);
     }
+    /**
+     * 列表查询归档
+     */
 
     @Override
     public List<ArchiveVO> listArchives() {
         return blogArticleMapper.selectArchives();
-    }
+    }    /**
+     * toVO
+     */
+
 
     private ArticleVO toVO(BlogArticle article) {
         ArticleVO articleVO = new ArticleVO();
