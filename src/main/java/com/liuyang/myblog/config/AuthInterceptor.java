@@ -25,6 +25,11 @@ public class AuthInterceptor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+        System.out.println("DEBUG - Method: " + request.getMethod() 
+                + ", ServletPath: " + request.getServletPath() 
+                + ", RequestURI: " + request.getRequestURI() 
+                + ", ContextPath: " + request.getContextPath()
+                + ", isPublic: " + isPublicRequest(request));
         if (isPublicRequest(request)) {
             return true;
         }

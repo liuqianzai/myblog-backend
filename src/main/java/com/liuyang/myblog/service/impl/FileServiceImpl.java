@@ -19,12 +19,23 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
 
+import org.springframework.transaction.annotation.Transactional;
+
 @Service
 /**
  * 文件业务逻辑接口实现类
  */
 public class FileServiceImpl implements FileService {
-    private static final Set<String> ALLOWED_EXTENSIONS = Set.of("jpg", "jpeg", "png", "gif", "webp");
+    private static final Set<String> ALLOWED_EXTENSIONS = Set.of(
+            // 图片格式
+            "jpg", "jpeg", "png", "gif", "webp", "svg", "ico", "bmp",
+            // 文档格式
+            "pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "txt", "md",
+            // 压缩包格式
+            "zip", "rar", "7z", "tar", "gz",
+            // 音视频格式
+            "mp3", "mp4", "wav", "webm"
+    );
 
     private final BlogFileMapper blogFileMapper;
 
@@ -35,9 +46,10 @@ public class FileServiceImpl implements FileService {
         this.blogFileMapper = blogFileMapper;
     }
     /**
-     * 上传图片
+     * 上传文件
      */
 
+    @Transactional
     @Override
     public FileUploadVO uploadImage(MultipartFile file) {
         if (file == null || file.isEmpty()) {
@@ -46,7 +58,7 @@ public class FileServiceImpl implements FileService {
         String originalFilename = file.getOriginalFilename();
         String extension = getExtension(originalFilename);
         if (!ALLOWED_EXTENSIONS.contains(extension)) {
-            throw BusinessException.badRequest("only jpg, jpeg, png, gif and webp are allowed");
+            throw BusinessException.badRequest("unsupported file extension: ." + extension);
         }
 
         String datePath = LocalDate.now().toString();

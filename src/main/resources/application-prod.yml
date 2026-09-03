@@ -1,0 +1,16 @@
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/my_blog?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8
+    username: myblog
+    password: LiuYang20030204  # 建议用环境变量注入
+
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.nologging.NoLoggingImpl  # 生产关闭SQL日志
+
+blog:
+  auth:
+    password-salt: myblog-salt-2025
+  upload:
+    dir: /opt/myblog/uploads  # Linux服务器路径

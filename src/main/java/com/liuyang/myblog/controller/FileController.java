@@ -21,7 +21,7 @@ public class FileController {
         this.fileService = fileService;
     }
 
-    @PostMapping("/images")
+    @PostMapping({"", "/images"})
     public ApiResponse<FileUploadVO> uploadImage(@RequestParam("file") MultipartFile file) {
         return ApiResponse.ok(fileService.uploadImage(file));
     }
