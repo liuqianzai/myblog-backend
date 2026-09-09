@@ -45,6 +45,7 @@ public class AuthServiceImpl implements AuthService {
 
         BlogUser user = blogUserMapper.selectOne(new LambdaQueryWrapper<BlogUser>()
                 .eq(BlogUser::getUsername, loginDTO.getUsername())
+                .eq(BlogUser::getStatus,1)
                 .last("limit 1"));
         if (user == null || !Integer.valueOf(1).equals(user.getStatus())) {
             throw BusinessException.unauthorized("invalid username or password");
