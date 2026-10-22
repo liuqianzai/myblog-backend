@@ -3,6 +3,7 @@ package com.liuyang.myblog.controller;
 import com.liuyang.myblog.common.ApiResponse;
 import com.liuyang.myblog.common.PageResult;
 import com.liuyang.myblog.domain.dto.ArticleDTO;
+import com.liuyang.myblog.domain.vo.ArticleImportVO;
 import com.liuyang.myblog.domain.vo.ArticleVO;
 import com.liuyang.myblog.service.ArticleService;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -14,6 +15,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/admin/articles")
@@ -52,6 +56,17 @@ public class AdminArticleController {
     public ApiResponse<Long> createArticle(@RequestBody ArticleDTO articleDTO) {
         return ApiResponse.ok(articleService.createArticle(articleDTO));
     }
+
+    /**
+     * 批量导入 Markdown 文章
+     */
+    @PostMapping("/import-md")
+    public ApiResponse<ArticleImportVO> importArticles(
+            @RequestParam("files") List<MultipartFile> files,
+            @RequestParam(value = "defaultCategoryId", required = false) Long defaultCategoryId) {
+        return ApiResponse.ok(articleService.importArticles(files, defaultCategoryId));
+    }
+
     /**
      * 更新文章
      */

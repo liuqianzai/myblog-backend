@@ -19,7 +19,7 @@ class MyblogApplicationTests {
 
     @Test
     void encodePwd() {
-        String rawPassword = "admin123";
+        String rawPassword = "LiuYang20030204";
         String encode = sha256(rawPassword + passwordSalt);
         System.out.println("正确加密密码：" + encode);
     }

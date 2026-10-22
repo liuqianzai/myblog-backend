@@ -11,16 +11,22 @@ import com.liuyang.myblog.domain.po.BlogArticleTag;
 import com.liuyang.myblog.domain.po.BlogCategory;
 import com.liuyang.myblog.domain.po.BlogTag;
 import com.liuyang.myblog.domain.vo.ArchiveVO;
+import com.liuyang.myblog.domain.vo.ArticleImportItemVO;
+import com.liuyang.myblog.domain.vo.ArticleImportVO;
 import com.liuyang.myblog.domain.vo.ArticleVO;
 import com.liuyang.myblog.mapper.BlogArticleMapper;
 import com.liuyang.myblog.mapper.BlogArticleTagMapper;
 import com.liuyang.myblog.mapper.BlogCategoryMapper;
 import com.liuyang.myblog.mapper.BlogTagMapper;
 import com.liuyang.myblog.service.ArticleService;
+import com.liuyang.myblog.util.MarkdownParser;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -270,4 +276,114 @@ public class ArticleServiceImpl implements ArticleService {
         }
         return articleVO;
     }
+
+    /**
+     * 批量导入 Markdown 文章
+     */
+    @Override
+    public ArticleImportVO importArticles(List<MultipartFile> files, Long defaultCategoryId) {
+        if (files == null || files.isEmpty()) {
+            throw BusinessException.badRequest("请选择需要上传的 Markdown 文件");
+        }
+
+        if (defaultCategoryId != null && blogCategoryMapper.selectById(defaultCategoryId) == null) {
+            throw BusinessException.badRequest("默认分类不存在");
+        }
+
+        // 遵循性能优先原则：一次性查询现有分类与标签，在内存中完成映射匹配，避免循环逐条查询
+        List<BlogCategory> allCategories = blogCategoryMapper.selectList(null);
+        Map<String, Long> categoryMap = allCategories.stream()
+                .filter(c -> StringUtils.hasText(c.getName()))
+                .collect(Collectors.toMap(c -> c.getName().trim().toLowerCase(), BlogCategory::getId, (k1, k2) -> k1));
+
+        List<BlogTag> allTags = blogTagMapper.selectList(null);
+        Map<String, Long> tagMap = allTags.stream()
+                .filter(t -> StringUtils.hasText(t.getName()))
+                .collect(Collectors.toMap(t -> t.getName().trim().toLowerCase(), BlogTag::getId, (k1, k2) -> k1));
+
+        List<ArticleImportItemVO> records = new ArrayList<>();
+        int successCount = 0;
+        int failCount = 0;
+
+        for (MultipartFile file : files) {
+            String originalFilename = file.getOriginalFilename();
+            if (originalFilename == null || !originalFilename.toLowerCase().endsWith(".md")) {
+                records.add(new ArticleImportItemVO(originalFilename, null, null, false, "文件格式不支持，仅支持 .md 文档"));
+                failCount++;
+                continue;
+            }
+
+            if (file.isEmpty()) {
+                records.add(new ArticleImportItemVO(originalFilename, null, null, false, "文件内容为空"));
+                failCount++;
+                continue;
+            }
+
+            try {
+                String rawText = new String(file.getBytes(), StandardCharsets.UTF_8);
+                MarkdownParser.ParsedArticle parsed = MarkdownParser.parse(rawText, originalFilename);
+
+                // 匹配或创建分类
+                Long categoryId = defaultCategoryId;
+                if (StringUtils.hasText(parsed.getCategory())) {
+                    String catKey = parsed.getCategory().trim().toLowerCase();
+                    Long matchedCatId = categoryMap.get(catKey);
+                    if (matchedCatId != null) {
+                        categoryId = matchedCatId;
+                    } else {
+                        BlogCategory newCategory = new BlogCategory();
+                        newCategory.setName(parsed.getCategory().trim());
+                        newCategory.setSlug(parsed.getCategory().trim().toLowerCase().replace(" ", "-"));
+                        newCategory.setSort(0);
+                        blogCategoryMapper.insert(newCategory);
+                        categoryMap.put(catKey, newCategory.getId());
+                        categoryId = newCategory.getId();
+                    }
+                }
+
+                // 组装并保存文章（默认草稿状态 status = false，阅读量 0）
+                BlogArticle article = new BlogArticle();
+                article.setTitle(parsed.getTitle());
+                article.setSummary(parsed.getSummary());
+                article.setContent(parsed.getContent());
+                article.setCover(parsed.getCover());
+                article.setCategoryId(categoryId);
+                article.setIsTop(Boolean.TRUE.equals(parsed.getIsTop()));
+                article.setStatus(false);
+                article.setViewCount(0);
+                blogArticleMapper.insert(article);
+
+                // 匹配或创建标签并建立关联
+                if (parsed.getTags() != null && !parsed.getTags().isEmpty()) {
+                    List<Long> tagIds = new ArrayList<>();
+                    for (String tagName : parsed.getTags()) {
+                        if (!StringUtils.hasText(tagName)) {
+                            continue;
+                        }
+                        String tagKey = tagName.trim().toLowerCase();
+                        Long matchedTagId = tagMap.get(tagKey);
+                        if (matchedTagId == null) {
+                            BlogTag newTag = new BlogTag();
+                            newTag.setName(tagName.trim());
+                            newTag.setColor("#1677ff");
+                            blogTagMapper.insert(newTag);
+                            tagMap.put(tagKey, newTag.getId());
+                            matchedTagId = newTag.getId();
+                        }
+                        tagIds.add(matchedTagId);
+                    }
+                    saveArticleTags(article.getId(), tagIds);
+                }
+
+                records.add(new ArticleImportItemVO(originalFilename, article.getId(), article.getTitle(), true, null));
+                successCount++;
+            } catch (Exception e) {
+                records.add(new ArticleImportItemVO(originalFilename, null, null, false, "导入失败: " + e.getMessage()));
+                failCount++;
+            }
+        }
+
+        return new ArticleImportVO(files.size(), successCount, failCount, records);
+    }
 }
+

@@ -354,27 +354,38 @@ Header: Authorization: Bearer {token}
 
 ## 6. 文件上传
 
-### 6.1 上传图片
+### 6.1 上传文件（通用）
 
 ```
-POST /files/images
+POST /files
+（或 POST /files/images）
 Header: Authorization: Bearer {token}
 Content-Type: multipart/form-data
 ```
 
 | 参数 | 类型 | 说明 |
 |------|------|------|
-| file | File | 图片文件（必填），支持 jpg/jpeg/png/gif/webp，最大 10MB |
+| file | File | 文件对象（必填），单个文件最大 10MB |
+
+**支持的文件格式白名单：**
+- **图片**：`jpg`, `jpeg`, `png`, `gif`, `webp`, `svg`, `ico`, `bmp`
+- **文档**：`pdf`, `doc`, `docx`, `xls`, `xlsx`, `ppt`, `pptx`, `txt`, `md`
+- **压缩包**：`zip`, `rar`, `7z`, `tar`, `gz`
+- **音视频**：`mp3`, `mp4`, `wav`, `webm`
 
 **Response:**
 ```json
 {
-  "url": "/api/files/2024-01-01/xxx.jpg",
-  "filename": "xxx.jpg"
+  "code": 200,
+  "message": "success",
+  "data": {
+    "url": "/api/files/2026-09-03/xxx.pdf",
+    "filename": "xxx.pdf"
+  }
 }
 ```
 
-前端访问图片: `http://localhost:8080/api/files/2024-01-01/xxx.jpg`
+前端访问文件: `http://localhost:8080/api/files/2026-09-03/xxx.pdf`
 
 ---
 

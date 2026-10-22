@@ -3,14 +3,21 @@ package com.liuyang.myblog.service;
 import com.liuyang.myblog.common.PageResult;
 import com.liuyang.myblog.domain.dto.ArticleDTO;
 import com.liuyang.myblog.domain.vo.ArchiveVO;
+import com.liuyang.myblog.domain.vo.ArticleImportVO;
 import com.liuyang.myblog.domain.vo.ArticleVO;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
 /**
  * 文章业务逻辑接口
  */
-public interface ArticleService {/**
+public interface ArticleService {
+    /**
+     * 批量导入 Markdown 文章
+     */
+    ArticleImportVO importArticles(List<MultipartFile> files, Long defaultCategoryId);
+/**
  * 分页查询文章
  */
 

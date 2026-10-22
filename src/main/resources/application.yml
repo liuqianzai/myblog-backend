@@ -7,7 +7,7 @@ spring:
   servlet:
     multipart:
       max-file-size: 10MB
-      max-request-size: 10MB
+      max-request-size: 50MB
   # 默认激活 dev 环境，本地开发用
   profiles:
     active: dev
