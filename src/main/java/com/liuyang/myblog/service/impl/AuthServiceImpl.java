@@ -2,6 +2,7 @@ package com.liuyang.myblog.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.liuyang.myblog.common.BusinessException;
+import com.liuyang.myblog.common.JwtUtil;
 import com.liuyang.myblog.domain.dto.ChangePasswordDTO;
 import com.liuyang.myblog.domain.dto.LoginDTO;
 import com.liuyang.myblog.domain.po.BlogUser;
@@ -15,9 +16,6 @@ import org.springframework.util.StringUtils;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 /**
@@ -25,18 +23,19 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class AuthServiceImpl implements AuthService {
     private final BlogUserMapper blogUserMapper;
-    private final Map<String, Long> tokenStore = new ConcurrentHashMap<>();
+    private final JwtUtil jwtUtil;
 
     @Value("${blog.auth.password-salt:myblog-default-salt}")
     private String passwordSalt;
 
-    public AuthServiceImpl(BlogUserMapper blogUserMapper) {
+    public AuthServiceImpl(BlogUserMapper blogUserMapper, JwtUtil jwtUtil) {
         this.blogUserMapper = blogUserMapper;
+        this.jwtUtil = jwtUtil;
     }
+
     /**
      * login
      */
-
     @Override
     public LoginVO login(LoginDTO loginDTO) {
         if (loginDTO == null || !StringUtils.hasText(loginDTO.getUsername()) || !StringUtils.hasText(loginDTO.getPassword())) {
@@ -45,7 +44,7 @@ public class AuthServiceImpl implements AuthService {
 
         BlogUser user = blogUserMapper.selectOne(new LambdaQueryWrapper<BlogUser>()
                 .eq(BlogUser::getUsername, loginDTO.getUsername())
-                .eq(BlogUser::getStatus,1)
+                .eq(BlogUser::getStatus, 1)
                 .last("limit 1"));
         if (user == null || !Integer.valueOf(1).equals(user.getStatus())) {
             throw BusinessException.unauthorized("invalid username or password");
@@ -56,35 +55,29 @@ public class AuthServiceImpl implements AuthService {
             throw BusinessException.unauthorized("invalid username or password");
         }
 
-        String token = UUID.randomUUID().toString().replace("-", "");
-        tokenStore.put(token, user.getId());
+        String token = jwtUtil.generateToken(user.getId());
         return new LoginVO(token, user.getUsername(), user.getNickname());
     }
+
     /**
      * 校验令牌
      */
-
     @Override
     public Long verifyToken(String token) {
-        if (!StringUtils.hasText(token)) {
-            return null;
-        }
-        return tokenStore.get(token);
+        return jwtUtil.verifyToken(token);
     }
+
     /**
      * logout
      */
-
     @Override
     public void logout(String token) {
-        if (StringUtils.hasText(token)) {
-            tokenStore.remove(token);
-        }
+        // JWT 为无状态令牌，登出由前端清除客户端缓存即可
     }
+
     /**
      * change密码
      */
-
     @Override
     public void changePassword(Long userId, ChangePasswordDTO changePasswordDTO) {
         if (userId == null) {
@@ -109,11 +102,11 @@ public class AuthServiceImpl implements AuthService {
         }
         user.setPasswordHash(sha256(changePasswordDTO.getNewPassword() + passwordSalt));
         blogUserMapper.updateById(user);
-    }    /**
+    }
+
+    /**
      * sha256
      */
-
-
     private String sha256(String value) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");

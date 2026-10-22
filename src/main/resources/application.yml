@@ -16,3 +16,8 @@ mybatis-plus:
   mapper-locations: classpath*:/mapper/**/*.xml
   configuration:
     map-underscore-to-camel-case: true
+
+blog:
+  auth:
+    jwt-secret: myblog-secure-jwt-secret-key-2026-liuyang
+    jwt-expire-seconds: 604800  # 7天有效（单位：秒）
