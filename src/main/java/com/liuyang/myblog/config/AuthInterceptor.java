@@ -6,8 +6,8 @@ import com.liuyang.myblog.common.AuthContext;
 import com.liuyang.myblog.service.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.http.MediaType;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
@@ -25,14 +25,7 @@ public class AuthInterceptor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-        System.out.println("DEBUG - Method: " + request.getMethod() 
-                + ", ServletPath: " + request.getServletPath() 
-                + ", RequestURI: " + request.getRequestURI() 
-                + ", ContextPath: " + request.getContextPath()
-                + ", isPublic: " + isPublicRequest(request));
-        if (isPublicRequest(request)) {
-            return true;
-        }
+        boolean isPublic = isPublicRequest(request);
 
         String header = request.getHeader("Authorization");
         String token = null;
@@ -43,6 +36,10 @@ public class AuthInterceptor implements HandlerInterceptor {
         if (userId != null) {
             request.setAttribute(AuthContext.TOKEN_ATTRIBUTE, token);
             request.setAttribute(AuthContext.USER_ID_ATTRIBUTE, userId);
+            return true;
+        }
+
+        if (isPublic) {
             return true;
         }
 
@@ -61,6 +58,10 @@ public class AuthInterceptor implements HandlerInterceptor {
         if (path.equals("/comments") && HttpMethod.POST.matches(request.getMethod())) {
             return true;
         }
+        // 小宠物气泡行为上报接口允许访客免密调用
+        if (path.equals("/agent/pet/bubble") && HttpMethod.POST.matches(request.getMethod())) {
+            return true;
+        }
         if (!HttpMethod.GET.matches(request.getMethod())) {
             return false;
         }
@@ -77,6 +78,7 @@ public class AuthInterceptor implements HandlerInterceptor {
                 || path.startsWith("/files/")
                 || path.equals("/comments")
                 || path.equals("/friend-links")
-                || path.startsWith("/pages/");
+                || path.startsWith("/pages/")
+                || path.startsWith("/agent/recommend/");
     }
 }

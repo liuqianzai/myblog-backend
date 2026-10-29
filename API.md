@@ -24,7 +24,8 @@
 - [9. 配置管理](#9-配置管理)
 - [10. 归档](#10-归档)
 - [11. 仪表盘](#11-仪表盘)
-- [12. 通用说明](#12-通用说明)
+- [12. 智能体助手模块](#12-智能体助手模块)
+- [13. 通用说明](#13-通用说明)
 
 ---
 
@@ -622,9 +623,142 @@ Header: Authorization: Bearer {token}
 
 ---
 
-## 12. 通用说明
+## 12. 智能体助手模块
 
-### 12.1 统一响应格式
+### 12.1 行为感知上报与小宠物气泡响应
+
+```
+POST /agent/pet/bubble
+```
+
+免密接口（游客可用，带 Token 可识别管理员身份）。用于前端小宠物常驻挂件上报用户互动行为（如算运势、做测验、深度阅读、页面进入等），并获取小宠物的气泡文案与纯文本下一步操作按钮。
+
+**Request Body:**
+```json
+{
+  "eventType": "ACTION_CUSTOM",
+  "scene": "FORTUNE_PAGE",
+  "metaTags": ["事业", "转机", "自强不息"],
+  "summary": "摇得未济卦，事未成，充满转机",
+  "targetId": null,
+  "visitorSessionId": "session_visitor_12345",
+  "payload": {
+    "divinationName": "未济卦",
+    "omen": "未成转机"
+  }
+}
+```
+
+**Response:**
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": {
+    "bubbleText": "算得未济卦，心境顺应天时。为你推荐这篇《程序员如何对抗焦虑与技术瓶颈》助益前行：",
+    "petMood": "THINKING",
+    "autoDismissSec": 10,
+    "suggestActions": [
+      {
+        "actionCode": "NAVIGATE_ARTICLE",
+        "label": "顺应卦象",
+        "payload": { "articleId": 100, "title": "程序员如何对抗焦虑与技术瓶颈" }
+      },
+      {
+        "actionCode": "OPEN_CHAT",
+        "label": "与助手聊聊",
+        "payload": { "contextToken": "c8f3e2b1..." }
+      },
+      {
+        "actionCode": "DISMISS_BUBBLE",
+        "label": "收起气泡",
+        "payload": {}
+      }
+    ],
+    "relatedArticle": {
+      "id": 100,
+      "title": "程序员如何对抗焦虑与技术瓶颈",
+      "summary": "面对转机与低谷时的心境修炼指南",
+      "cover": "http://...",
+      "viewCount": 352,
+      "createTime": "2026-10-20T10:00:00",
+      "categoryName": "随笔杂谈",
+      "tags": ["修心", "职场"],
+      "matchReason": "匹配心境标签: 事业、转机"
+    },
+    "contextToken": "c8f3e2b1...",
+    "cooldownSec": 0
+  }
+}
+```
+
+### 12.2 获取文章相关推荐 (Item-to-Item)
+
+```
+GET /agent/recommend/related?articleId=12&limit=5
+```
+
+基于标签重合度、同分类加权与热度，为当前阅读文章推荐最相关的优质文章。
+
+### 12.3 获取探索精选推荐 (冷启动/时间衰减)
+
+```
+GET /agent/recommend/explore?limit=5
+```
+
+基于 Hacker News 时间衰减算法与置顶加权，推荐近期优质文章。
+
+### 12.4 根据业务语义标签匹配推荐
+
+```
+GET /agent/recommend/tags?tags=高并发,Redis&limit=5
+```
+
+### 12.5 管理端操作联想 (后台专用)
+
+```
+POST /admin/agent/actions/suggest
+Header: Authorization: Bearer {token}
+```
+
+**Request Body:**
+```json
+{
+  "scene": "ADMIN_POST_SAVED",
+  "targetId": 15
+}
+```
+
+**Response:**
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": [
+    {
+      "actionCode": "PUSH_QQ",
+      "label": "推送QQ群",
+      "payload": { "articleId": 15 }
+    },
+    {
+      "actionCode": "PIN_TOP",
+      "label": "设为置顶",
+      "payload": { "articleId": 15 }
+    },
+    {
+      "actionCode": "VIEW_PAGE",
+      "label": "查看前台",
+      "payload": { "articleId": 15 }
+    }
+  ]
+}
+```
+
+---
+
+## 13. 通用说明
+
+### 13.1 统一响应格式
 
 成功:
 ```json
@@ -646,7 +780,7 @@ Header: Authorization: Bearer {token}
 | 404 | 资源不存在 |
 | 500 | 服务器内部错误 |
 
-### 12.2 分页参数
+### 13.2 分页参数
 
 所有分页接口统一：
 - `page`: 页码，从 1 开始，默认 1
@@ -662,7 +796,7 @@ Header: Authorization: Bearer {token}
 }
 ```
 
-### 12.3 认证范围对照表
+### 13.3 认证范围对照表
 
 | 接口范围 | 是否需要认证 |
 |----------|:----------:|
@@ -675,6 +809,8 @@ Header: Authorization: Bearer {token}
 | `GET /comments`（仅已审核） | ❌ |
 | `POST /comments`（提交评论） | ❌ |
 | `GET /article-tags` | ❌ |
-| 所有 `/admin/**` 路径 | ✅ |
+| `POST /agent/pet/bubble`（行为感知小宠物气泡） | ❌ |
+| `GET /agent/recommend/**`（智能文章推荐） | ❌ |
+| 所有 `/admin/**` 路径（包含 `/admin/agent/**`） | ✅ |
 | `POST /files/images` | ✅ |
 | `POST /auth/logout`, `/auth/password` | ✅ |
