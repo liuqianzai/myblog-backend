@@ -3,7 +3,7 @@ package com.liuyang.myblog.controller;
 import com.liuyang.myblog.common.ApiResponse;
 import com.liuyang.myblog.common.PageResult;
 import com.liuyang.myblog.domain.dto.CommentDTO;
-import com.liuyang.myblog.domain.po.BlogComment;
+import com.liuyang.myblog.domain.vo.CommentVO;
 import com.liuyang.myblog.service.CommentService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -25,9 +25,9 @@ public class CommentController {
     }
 
     @GetMapping
-    public ApiResponse<PageResult<BlogComment>> pageComments(@RequestParam Long articleId,
-                                                             @RequestParam(required = false) Long page,
-                                                             @RequestParam(required = false) Long size) {
+    public ApiResponse<PageResult<CommentVO>> pageComments(@RequestParam Long articleId,
+                                                           @RequestParam(required = false) Long page,
+                                                           @RequestParam(required = false) Long size) {
         return ApiResponse.ok(commentService.pagePublicComments(articleId, page, size));
     }
     /**

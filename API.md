@@ -305,6 +305,20 @@ GET /comments?articleId=1&page=1&size=10
 
 只返回已审核通过的评论。
 
+**Response 中的单条评论：**
+```json
+{
+  "id": 1,
+  "articleId": 1,
+  "nickname": "访客",
+  "content": "写得很清楚",
+  "createTime": "2026-11-06T10:00:00"
+}
+```
+
+> 公开列表**不返回 `email`** —— 评论者邮箱属于个人信息，不应随匿名接口下发。
+> 后台接口 `GET /admin/comments` 仍会返回完整字段。
+
 ### 5.2 前台 - 提交评论
 
 ```
@@ -369,7 +383,7 @@ Content-Type: multipart/form-data
 | file | File | 文件对象（必填），单个文件最大 10MB |
 
 **支持的文件格式白名单：**
-- **图片**：`jpg`, `jpeg`, `png`, `gif`, `webp`, `svg`, `ico`, `bmp`
+- **图片**：`jpg`, `jpeg`, `png`, `gif`, `webp`, `ico`, `bmp`（**不含 `svg`**：SVG 可内嵌脚本，而上传目录与站点同源，打开即执行，会形成存储型 XSS）
 - **文档**：`pdf`, `doc`, `docx`, `xls`, `xlsx`, `ppt`, `pptx`, `txt`, `md`
 - **压缩包**：`zip`, `rar`, `7z`, `tar`, `gz`
 - **音视频**：`mp3`, `mp4`, `wav`, `webm`
@@ -532,9 +546,10 @@ DELETE /admin/pages/{id}
 
 ## 9. 配置管理
 
-所有接口无需认证。
+读接口无需认证，但只返回**站点级公开配置**（键名以 `site_`、`home_`、`profile_`、`about_`、`social_` 开头）。
+写接口与全量读取需要**管理员**身份。
 
-### 9.1 配置列表
+### 9.1 配置列表（公开，已过滤）
 
 ```
 GET /configs
@@ -543,20 +558,26 @@ GET /configs
 **Response:**
 ```json
 [
-  { "configKey": "author_name", "configValue": "刘洋", "remark": "作者名称" }
+  { "configKey": "site_title", "configValue": "Liu Yang's Blog" }
 ]
 ```
 
-### 9.2 配置详情
+> 不会返回 `remark` 字段，也不会返回白名单以外的任何配置项（例如将来可能出现的
+> `llm_api_key`、`oss_secret` 等密钥类配置）。
+
+### 9.2 配置详情（公开，已过滤）
 
 ```
 GET /configs/{key}
 ```
 
-### 9.3 保存配置（新增/更新）
+非白名单键返回 `404 config not found`（不确认该键是否存在）。
+
+### 9.3 保存配置（新增/更新，需管理员）
 
 ```
 POST /configs
+Header: Authorization: Bearer {token}
 ```
 
 **Request Body:**
@@ -568,11 +589,21 @@ POST /configs
 }
 ```
 
-### 9.4 删除配置
+### 9.4 删除配置（需管理员）
 
 ```
 DELETE /configs/{key}
+Header: Authorization: Bearer {token}
 ```
+
+### 9.5 后台查看全部配置（需管理员）
+
+```
+GET /admin/configs
+Header: Authorization: Bearer {token}
+```
+
+返回全部配置项（含 `remark` 备注），供后台编辑页使用。
 
 ---
 
@@ -775,9 +806,12 @@ Header: Authorization: Bearer {token}
 | 状态码 | 说明 |
 |--------|------|
 | 200 | 成功 |
-| 400 | 参数错误（如必填字段缺失） |
-| 401 | 未登录或 token 无效 |
-| 404 | 资源不存在 |
+| 400 | 参数错误（如必填字段缺失、路径参数类型不匹配） |
+| 401 | 未登录或 token 无效、账号已停用 |
+| 403 | 已登录但无管理员权限 |
+| 404 | 资源不存在、接口不存在 |
+| 405 | 请求方法不支持 |
+| 415 | Content-Type 不支持 |
 | 500 | 服务器内部错误 |
 
 ### 13.2 分页参数
@@ -798,19 +832,25 @@ Header: Authorization: Bearer {token}
 
 ### 13.3 认证范围对照表
 
-| 接口范围 | 是否需要认证 |
-|----------|:----------:|
-| `POST /auth/login` | ❌ |
-| `GET /articles/**`, `/archives` | ❌ |
-| `GET /tags/**`, `/categories/**` | ❌ |
-| `GET /configs/**` | ❌ |
-| `GET /friend-links` | ❌ |
-| `GET /pages/**` | ❌ |
-| `GET /comments`（仅已审核） | ❌ |
-| `POST /comments`（提交评论） | ❌ |
-| `GET /article-tags` | ❌ |
-| `POST /agent/pet/bubble`（行为感知小宠物气泡） | ❌ |
-| `GET /agent/recommend/**`（智能文章推荐） | ❌ |
-| 所有 `/admin/**` 路径（包含 `/admin/agent/**`） | ✅ |
-| `POST /files/images` | ✅ |
-| `POST /auth/logout`, `/auth/password` | ✅ |
+| 接口范围 | 是否需要认证 | 需要管理员角色 |
+|----------|:----------:|:----------:|
+| `POST /auth/login` | ❌ | — |
+| `GET /articles/**`, `/archives` | ❌ | — |
+| `GET /tags/**`, `/categories/**` | ❌ | — |
+| `GET /configs/**`（仅白名单配置） | ❌ | — |
+| `GET /friend-links` | ❌ | — |
+| `GET /pages/**` | ❌ | — |
+| `GET /comments`（仅已审核，不含邮箱） | ❌ | — |
+| `POST /comments`（提交评论） | ❌ | — |
+| `GET /article-tags` | ❌ | — |
+| `POST /agent/pet/bubble`（行为感知小宠物气泡） | ❌ | — |
+| `GET /agent/recommend/**`（智能文章推荐） | ❌ | — |
+| 所有 `/admin/**` 路径（包含 `/admin/agent/**`） | ✅ | ✅ |
+| `GET /admin/configs`（全量配置） | ✅ | ✅ |
+| `POST /files`, `POST /files/images` | ✅ | ✅ |
+| `POST/PUT/DELETE /categories/**`, `/tags/**`, `/article-tags/**` | ✅ | ✅ |
+| `POST/DELETE /configs/**` | ✅ | ✅ |
+| `POST /auth/logout`, `POST /auth/password` | ✅ | ❌（本人即可） |
+
+> 令牌通过验证并不等于拥有后台权限：`/admin/**` 与所有站点数据写操作都要求账号
+> `role = admin` 且 `status = 1`。

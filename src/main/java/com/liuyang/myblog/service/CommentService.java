@@ -4,6 +4,7 @@ import com.liuyang.myblog.common.PageResult;
 import com.liuyang.myblog.domain.dto.CommentDTO;
 import com.liuyang.myblog.domain.dto.CommentReviewDTO;
 import com.liuyang.myblog.domain.po.BlogComment;
+import com.liuyang.myblog.domain.vo.CommentVO;
 
 /**
  * 评论业务逻辑接口
@@ -12,7 +13,7 @@ public interface CommentService {/**
  * 分页查询Public评论
  */
 
-    PageResult<BlogComment> pagePublicComments(Long articleId, Long page, Long size);    /**
+    PageResult<CommentVO> pagePublicComments(Long articleId, Long page, Long size);    /**
      * 分页查询Admin评论
      */
 

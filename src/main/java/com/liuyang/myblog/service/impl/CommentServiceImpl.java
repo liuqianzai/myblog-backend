@@ -8,11 +8,14 @@ import com.liuyang.myblog.domain.dto.CommentDTO;
 import com.liuyang.myblog.domain.dto.CommentReviewDTO;
 import com.liuyang.myblog.domain.po.BlogArticle;
 import com.liuyang.myblog.domain.po.BlogComment;
+import com.liuyang.myblog.domain.vo.CommentVO;
 import com.liuyang.myblog.mapper.BlogArticleMapper;
 import com.liuyang.myblog.mapper.BlogCommentMapper;
 import com.liuyang.myblog.service.CommentService;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+
+import java.util.List;
 
 @Service
 /**
@@ -31,11 +34,22 @@ public class CommentServiceImpl implements CommentService {
      */
 
     @Override
-    public PageResult<BlogComment> pagePublicComments(Long articleId, Long page, Long size) {
+    public PageResult<CommentVO> pagePublicComments(Long articleId, Long page, Long size) {
         if (articleId == null) {
             throw BusinessException.badRequest("article id is required");
         }
-        return pageComments(articleId, Boolean.TRUE, page, size);
+        PageResult<BlogComment> source = pageComments(articleId, Boolean.TRUE, page, size);
+        // 转成 VO 输出：实体里的 email 属于评论者个人信息，不能随公开列表返回
+        List<CommentVO> records = source.getRecords().stream().map(comment -> {
+            CommentVO vo = new CommentVO();
+            vo.setId(comment.getId());
+            vo.setArticleId(comment.getArticleId());
+            vo.setNickname(comment.getNickname());
+            vo.setContent(comment.getContent());
+            vo.setCreateTime(comment.getCreateTime());
+            return vo;
+        }).toList();
+        return new PageResult<>(source.getTotal(), source.getPage(), source.getSize(), records);
     }
     /**
      * 分页查询Admin评论

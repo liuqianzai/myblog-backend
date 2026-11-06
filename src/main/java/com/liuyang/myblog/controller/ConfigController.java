@@ -2,7 +2,7 @@ package com.liuyang.myblog.controller;
 
 import com.liuyang.myblog.common.ApiResponse;
 import com.liuyang.myblog.domain.dto.ConfigDTO;
-import com.liuyang.myblog.domain.po.BlogConfig;
+import com.liuyang.myblog.domain.vo.PublicConfigVO;
 import com.liuyang.myblog.service.ConfigService;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,7 +17,11 @@ import java.util.List;
 @RestController
 @RequestMapping("/configs")
 /**
- * 系统配置管理控制器
+ * 站点配置控制器
+ *
+ * 读接口对外公开，但只返回前台渲染需要的站点级配置；
+ * 写接口保留在原路径以兼容已有前端，由 AuthInterceptor 强制要求管理员身份。
+ * 管理员查看全部配置请使用 /admin/configs。
  */
 public class ConfigController {
     private final ConfigService configService;
@@ -30,16 +34,16 @@ public class ConfigController {
      */
 
     @GetMapping
-    public ApiResponse<List<BlogConfig>> listConfigs() {
-        return ApiResponse.ok(configService.listConfigs());
+    public ApiResponse<List<PublicConfigVO>> listConfigs() {
+        return ApiResponse.ok(configService.listPublicConfigs());
     }
     /**
      * 获取配置
      */
 
     @GetMapping("/{key}")
-    public ApiResponse<BlogConfig> getConfig(@PathVariable String key) {
-        return ApiResponse.ok(configService.getConfig(key));
+    public ApiResponse<PublicConfigVO> getConfig(@PathVariable String key) {
+        return ApiResponse.ok(configService.getPublicConfig(key));
     }
     /**
      * 创建配置

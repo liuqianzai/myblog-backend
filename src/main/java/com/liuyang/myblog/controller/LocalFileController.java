@@ -36,7 +36,8 @@ import java.util.*;
 public class LocalFileController {
 
     private static final Set<String> ALLOWED_IMAGE_EXTENSIONS = Set.of(
-            "jpg", "jpeg", "png", "gif", "webp", "svg", "ico", "bmp"
+            // 不含 svg：svg 可携带脚本，转存到公开目录后与站点同源，会形成存储型 XSS
+            "jpg", "jpeg", "png", "gif", "webp", "ico", "bmp"
     );
 
     private final BlogFileMapper blogFileMapper;

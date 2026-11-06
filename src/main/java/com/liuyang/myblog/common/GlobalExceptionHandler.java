@@ -53,6 +53,42 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * Content-Type 不支持（例如对只接受 JSON 的接口提交表单）。
+     * 语义上应返回 415，而不是 500。
+     */
+    @ExceptionHandler(org.springframework.web.HttpMediaTypeNotSupportedException.class)
+    public ResponseEntity<ApiResponse<Void>> handleMediaTypeNotSupported(
+            org.springframework.web.HttpMediaTypeNotSupportedException e) {
+        log.warn("不支持的 Content-Type: {}", e.getContentType());
+        return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
+                .body(ApiResponse.fail(415, "不支持的请求内容类型，请使用 application/json"));
+    }
+
+    /**
+     * 请求方法不支持（例如用 GET 调用只能 POST 的接口）。
+     */
+    @ExceptionHandler(org.springframework.web.HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<ApiResponse<Void>> handleMethodNotSupported(
+            org.springframework.web.HttpRequestMethodNotSupportedException e) {
+        log.warn("不支持的请求方法: {}", e.getMethod());
+        return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)
+                .body(ApiResponse.fail(405, "不支持的请求方法"));
+    }
+
+    /**
+     * 访问了不存在的接口。
+     * 若不单独处理，会被下方的 Exception 兜底成 500「服务器内部错误」，
+     * 既误导排查方向，也把框架内部提示文本透给了客户端。
+     */
+    @ExceptionHandler(org.springframework.web.servlet.resource.NoResourceFoundException.class)
+    public ResponseEntity<ApiResponse<Void>> handleNoResourceFound(
+            org.springframework.web.servlet.resource.NoResourceFoundException e) {
+        log.warn("接口不存在: {} {}", e.getHttpMethod(), e.getResourcePath());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ApiResponse.fail(404, "接口不存在"));
+    }
+
+    /**
      * 把业务码映射为真实的 HTTP 状态码，
      * 这样 Nginx、APM、前端 axios 拦截器都能按状态码识别错误，而不是永远 200。
      */

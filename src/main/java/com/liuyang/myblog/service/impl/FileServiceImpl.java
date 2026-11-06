@@ -27,8 +27,9 @@ import org.springframework.transaction.annotation.Transactional;
  */
 public class FileServiceImpl implements FileService {
     private static final Set<String> ALLOWED_EXTENSIONS = Set.of(
-            // 图片格式
-            "jpg", "jpeg", "png", "gif", "webp", "svg", "ico", "bmp",
+            // 图片格式（不含 svg：svg 可内嵌 <script>，而上传目录与站点同源，
+            // 打开即执行，构成存储型 XSS；需要图标的场景请改用 png/webp）
+            "jpg", "jpeg", "png", "gif", "webp", "ico", "bmp",
             // 文档格式
             "pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "txt", "md",
             // 压缩包格式
