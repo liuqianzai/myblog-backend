@@ -5,7 +5,9 @@ import com.liuyang.myblog.domain.dto.LocalImageImportDTO;
 import com.liuyang.myblog.domain.po.BlogFile;
 import com.liuyang.myblog.domain.vo.LocalImageImportVO;
 import com.liuyang.myblog.mapper.BlogFileMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Profile;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -23,6 +25,11 @@ import java.util.*;
 
 @RestController
 @RequestMapping("/admin/files")
+// 本控制器直接操作服务器本机文件系统（列目录、递归查找、复制任意路径、唤起资源管理器），
+// 只对本地开发有意义。生产环境由 application-prod.yml 指向 Linux 服务器，
+// 这些接口没有任何业务价值，却是完整的攻击面，因此限定只在 dev profile 下注册。
+@Profile("dev")
+@Slf4j
 /**
  * 本地文件辅助管理控制器
  */
@@ -58,20 +65,26 @@ public class LocalFileController {
         }
 
         try {
-            String os = System.getProperty("os.name").toLowerCase();
-            if (os.contains("win")) {
-                // Windows 系统下调用 cmd.exe 打开资源管理器并准确定位
-                Runtime.getRuntime().exec(new String[]{"cmd.exe", "/c", "start", "\"\"", path});
-            } else if (os.contains("mac")) {
-                // macOS 系统下调用 open 命令
-                Runtime.getRuntime().exec(new String[]{"open", path});
-            } else {
-                // Linux / Unix 环境下调用 xdg-open
-                Runtime.getRuntime().exec(new String[]{"xdg-open", path});
+            // 改用 java.awt.Desktop 直接打开：不经过 shell，
+            // 原先 Runtime.exec("cmd.exe /c start ... path") 会把 path 交给 cmd 二次解析，
+            // 路径里只要出现 & | ^ 等元字符就能跳出参数位执行任意命令。
+            if (!java.awt.Desktop.isDesktopSupported()) {
+                return ApiResponse.fail(500, "当前运行环境不支持打开本地文件夹（可能为无桌面环境）");
             }
+            java.awt.Desktop desktop = java.awt.Desktop.getDesktop();
+            if (!desktop.isSupported(java.awt.Desktop.Action.OPEN)) {
+                return ApiResponse.fail(500, "当前运行环境不支持打开本地文件夹");
+            }
+            desktop.open(folder);
+            log.info("已打开本地文件夹: {}", folder.getAbsolutePath());
             return ApiResponse.ok();
         } catch (IOException e) {
+            log.error("打开本地文件夹失败: {}", folder.getAbsolutePath(), e);
             return ApiResponse.fail(500, "打开文件夹失败：" + e.getMessage());
+        } catch (UnsupportedOperationException e) {
+            // java.awt.HeadlessException 是它的子类，一并在此捕获
+            log.error("当前环境不支持打开本地文件夹: {}", folder.getAbsolutePath(), e);
+            return ApiResponse.fail(500, "当前运行环境不支持打开本地文件夹");
         }
     }
 

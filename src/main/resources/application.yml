@@ -11,6 +11,14 @@ spring:
   # 默认激活 dev 环境，本地开发用
   profiles:
     active: dev
+  config:
+    # 本地私有配置：数据库口令、JWT 密钥、密码盐等敏感项全部放在这两个文件里，
+    # 它们已在 .gitignore 中排除，不会进入版本库。
+    # 线上部署则改用环境变量注入（Spring Boot 自动进行宽松绑定，无需在 yml 里显式声明）：
+    #   SPRING_DATASOURCE_PASSWORD / BLOG_AUTH_JWT_SECRET / BLOG_AUTH_PASSWORD_SALT
+    import:
+      - optional:file:./application-local.yml
+      - optional:file:./config/application-local.yml
 
 mybatis-plus:
   mapper-locations: classpath*:/mapper/**/*.xml
@@ -19,5 +27,12 @@ mybatis-plus:
 
 blog:
   auth:
-    jwt-secret: myblog-secure-jwt-secret-key-2026-liuyang
+    # jwt-secret 不在此处给默认值：
+    # 一旦写成固定字符串（或在 @Value 里写兜底默认值），等于把签名密钥公开在代码仓库里，
+    # 任何人都能伪造出合法令牌。缺失时启动即失败，是刻意保留的失败快启(fail-fast)。
     jwt-expire-seconds: 604800  # 7天有效（单位：秒）
+  file:
+    cleanup:
+      # 孤儿文件清理任务会物理删除磁盘文件，属于不可逆操作，故默认关闭。
+      # 确认引用判定逻辑与当前数据吻合后，再改为 true 开启。
+      enabled: false

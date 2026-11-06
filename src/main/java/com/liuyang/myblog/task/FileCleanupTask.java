@@ -28,6 +28,15 @@ public class FileCleanupTask {
     @Value("${blog.upload.dir:uploads}")
     private String uploadDir;
 
+    /**
+     * 清理任务开关。
+     * 该任务会物理删除磁盘文件，属于不可逆操作，因此默认关闭：
+     * 必须在确认引用判定逻辑（LIKE 匹配正文）与当前数据完全吻合后再手工开启，
+     * 否则一次误判就会把仍在使用的图片删掉。
+     */
+    @Value("${blog.file.cleanup.enabled:false}")
+    private boolean cleanupEnabled;
+
     public FileCleanupTask(BlogFileMapper blogFileMapper,
                            BlogArticleMapper blogArticleMapper,
                            BlogPageMapper blogPageMapper,
@@ -45,6 +54,10 @@ public class FileCleanupTask {
      */
     @Scheduled(cron = "0 0 2 * * ?")
     public void cleanupOrphanedFiles() {
+        if (!cleanupEnabled) {
+            log.info("文件清理任务未启用（blog.file.cleanup.enabled=false），本次跳过。");
+            return;
+        }
         log.info("Starting scheduled cleanup task for orphaned files...");
 
         // 1. 查询 24 小时之前创建的文件列表
@@ -70,10 +83,14 @@ public class FileCleanupTask {
             boolean isReferenced = false;
 
             // 2.1 检查文章内容和封面
+            // 显式用 and(...) 包住 or()：裸 or() 会与 MyBatis-Plus 自动追加的逻辑删除条件
+            // （deleted = 0）平级拼接，生成 deleted=0 AND content LIKE ? OR cover = ? 这种
+            // 优先级错乱的 SQL，导致已删除文章的封面被误判为仍被引用。
             Long articleCount = blogArticleMapper.selectCount(new LambdaQueryWrapper<BlogArticle>()
-                    .like(BlogArticle::getContent, url)
-                    .or()
-                    .eq(BlogArticle::getCover, url));
+                    .and(wrapper -> wrapper
+                            .like(BlogArticle::getContent, url)
+                            .or()
+                            .eq(BlogArticle::getCover, url)));
             if (articleCount > 0) {
                 isReferenced = true;
             }

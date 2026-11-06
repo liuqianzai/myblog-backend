@@ -25,7 +25,8 @@ public class AuthServiceImpl implements AuthService {
     private final BlogUserMapper blogUserMapper;
     private final JwtUtil jwtUtil;
 
-    @Value("${blog.auth.password-salt:myblog-default-salt}")
+    // 不设默认值：默认盐一旦随源码公开，加盐等于没加，攻击者可预先构建彩虹表
+    @Value("${blog.auth.password-salt}")
     private String passwordSalt;
 
     public AuthServiceImpl(BlogUserMapper blogUserMapper, JwtUtil jwtUtil) {

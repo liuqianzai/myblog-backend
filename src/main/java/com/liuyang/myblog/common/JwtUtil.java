@@ -23,10 +23,24 @@ public class JwtUtil {
     private final long expireSeconds;
     private final ObjectMapper objectMapper;
 
+    /**
+     * 签名密钥最短长度。HS256 的密钥短于 256 位时会显著降低暴力破解成本。
+     */
+    private static final int MIN_SECRET_LENGTH = 32;
+
     public JwtUtil(
-            @Value("${blog.auth.jwt-secret:myblog-secure-jwt-secret-key-2026-liuyang}") String secret,
+            // 此处刻意不提供默认值：一旦有兜底默认值，即使配置项被误删，
+            // 应用仍会用这个公开的字符串签发令牌，等同于把签名密钥写进了仓库。
+            // 缺失配置时构造失败、启动中断，才能暴露问题。
+            @Value("${blog.auth.jwt-secret}") String secret,
             @Value("${blog.auth.jwt-expire-seconds:604800}") long expireSeconds,
             ObjectMapper objectMapper) {
+        if (secret == null || secret.isBlank()) {
+            throw new IllegalStateException("blog.auth.jwt-secret 未配置，请在环境变量 BLOG_AUTH_JWT_SECRET 或 local 配置文件中设置");
+        }
+        if (secret.length() < MIN_SECRET_LENGTH) {
+            throw new IllegalStateException("blog.auth.jwt-secret 长度不足 " + MIN_SECRET_LENGTH + " 位，请更换为随机生成的长密钥");
+        }
         this.secret = secret;
         this.expireSeconds = expireSeconds;
         this.objectMapper = objectMapper;

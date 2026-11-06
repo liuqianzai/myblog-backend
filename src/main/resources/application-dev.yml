@@ -2,15 +2,16 @@ spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/my_blog?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8
-    username: root
-    password: LiuYang20030204
+    username: ${MYSQL_USERNAME:root}
+    # 口令不入库，由 application-local.yml 或环境变量 MYSQL_PASSWORD 提供
 
 mybatis-plus:
   configuration:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
 
 blog:
-  auth:
-    password-salt: myblog-salt-2025
+  api:
+    # 开发环境把异常原始信息透传出来，方便定位问题；生产环境保持关闭
+    expose-error-detail: true
   upload:
     dir: E:/myblogupload

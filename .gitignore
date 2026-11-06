@@ -40,3 +40,9 @@ logs/
 
 ### Uploads ###
 uploads/
+
+### Local secrets ###
+# 本地私有配置（数据库口令、JWT 密钥、密码盐），严禁提交
+application-local.yml
+config/application-local.yml
+.env
