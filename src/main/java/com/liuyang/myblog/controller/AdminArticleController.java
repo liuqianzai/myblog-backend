@@ -6,6 +6,7 @@ import com.liuyang.myblog.domain.dto.ArticleDTO;
 import com.liuyang.myblog.domain.vo.ArticleImportVO;
 import com.liuyang.myblog.domain.vo.ArticleVO;
 import com.liuyang.myblog.service.ArticleService;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -53,7 +54,7 @@ public class AdminArticleController {
      */
 
     @PostMapping
-    public ApiResponse<Long> createArticle(@RequestBody ArticleDTO articleDTO) {
+    public ApiResponse<Long> createArticle(@Valid @RequestBody ArticleDTO articleDTO) {
         return ApiResponse.ok(articleService.createArticle(articleDTO));
     }
 
@@ -72,7 +73,7 @@ public class AdminArticleController {
      */
 
     @PutMapping("/{id}")
-    public ApiResponse<Void> updateArticle(@PathVariable Long id, @RequestBody ArticleDTO articleDTO) {
+    public ApiResponse<Void> updateArticle(@PathVariable Long id, @Valid @RequestBody ArticleDTO articleDTO) {
         articleService.updateArticle(id, articleDTO);
         return ApiResponse.ok();
     }

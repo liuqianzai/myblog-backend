@@ -4,6 +4,7 @@ import com.liuyang.myblog.common.ApiResponse;
 import com.liuyang.myblog.domain.dto.CategoryDTO;
 import com.liuyang.myblog.domain.po.BlogCategory;
 import com.liuyang.myblog.service.CategoryService;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -47,7 +48,7 @@ public class CategoryController {
      */
 
     @PostMapping
-    public ApiResponse<Long> createCategory(@RequestBody CategoryDTO categoryDTO) {
+    public ApiResponse<Long> createCategory(@Valid @RequestBody CategoryDTO categoryDTO) {
         return ApiResponse.ok(categoryService.createCategory(categoryDTO));
     }
     /**
@@ -55,7 +56,7 @@ public class CategoryController {
      */
 
     @PutMapping("/{id}")
-    public ApiResponse<Void> updateCategory(@PathVariable Long id, @RequestBody CategoryDTO categoryDTO) {
+    public ApiResponse<Void> updateCategory(@PathVariable Long id, @Valid @RequestBody CategoryDTO categoryDTO) {
         categoryService.updateCategory(id, categoryDTO);
         return ApiResponse.ok();
     }

@@ -19,6 +19,21 @@ spring:
     import:
       - optional:file:./application-local.yml
       - optional:file:./config/application-local.yml
+  sql:
+    init:
+      # 明确关闭 schema.sql / data.sql 自动执行：
+      # 建表改表统一交给 Flyway，避免两套机制各改一半、谁也说不清库结构来自哪里。
+      mode: never
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    # 已有数据的库直接打上 V1 基线标记，不重放建表语句；
+    # 空库则会从 V1 开始完整执行，两条路径的结果一致。
+    baseline-on-migrate: true
+    baseline-version: 1
+    baseline-description: "真实运行库结构快照"
+    # 迁移脚本一旦执行过就不允许再被改写，改写会破坏校验和
+    validate-on-migrate: true
 
 mybatis-plus:
   mapper-locations: classpath*:/mapper/**/*.xml

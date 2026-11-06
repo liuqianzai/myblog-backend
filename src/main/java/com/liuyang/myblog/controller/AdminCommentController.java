@@ -5,6 +5,7 @@ import com.liuyang.myblog.common.PageResult;
 import com.liuyang.myblog.domain.dto.CommentReviewDTO;
 import com.liuyang.myblog.domain.po.BlogComment;
 import com.liuyang.myblog.service.CommentService;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -38,7 +39,7 @@ public class AdminCommentController {
      */
 
     @PatchMapping("/{id}/review")
-    public ApiResponse<Void> reviewComment(@PathVariable Long id, @RequestBody CommentReviewDTO reviewDTO) {
+    public ApiResponse<Void> reviewComment(@PathVariable Long id, @Valid @RequestBody CommentReviewDTO reviewDTO) {
         commentService.reviewComment(id, reviewDTO);
         return ApiResponse.ok();
     }

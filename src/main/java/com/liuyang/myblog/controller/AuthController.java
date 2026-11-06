@@ -7,6 +7,7 @@ import com.liuyang.myblog.domain.dto.LoginDTO;
 import com.liuyang.myblog.domain.vo.LoginVO;
 import com.liuyang.myblog.service.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,7 +29,7 @@ public class AuthController {
      */
 
     @PostMapping("/login")
-    public ApiResponse<LoginVO> login(@RequestBody LoginDTO loginDTO) {
+    public ApiResponse<LoginVO> login(@Valid @RequestBody LoginDTO loginDTO) {
         return ApiResponse.ok(authService.login(loginDTO));
     }
     /**
@@ -46,7 +47,7 @@ public class AuthController {
      */
 
     @PostMapping("/password")
-    public ApiResponse<Void> changePassword(@RequestBody ChangePasswordDTO changePasswordDTO,
+    public ApiResponse<Void> changePassword(@Valid @RequestBody ChangePasswordDTO changePasswordDTO,
                                             HttpServletRequest request) {
         Long userId = (Long) request.getAttribute(AuthContext.USER_ID_ATTRIBUTE);
         authService.changePassword(userId, changePasswordDTO);

@@ -5,6 +5,7 @@ import com.liuyang.myblog.common.PageResult;
 import com.liuyang.myblog.domain.dto.CommentDTO;
 import com.liuyang.myblog.domain.vo.CommentVO;
 import com.liuyang.myblog.service.CommentService;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -35,7 +36,7 @@ public class CommentController {
      */
 
     @PostMapping
-    public ApiResponse<Long> createComment(@RequestBody CommentDTO commentDTO) {
+    public ApiResponse<Long> createComment(@Valid @RequestBody CommentDTO commentDTO) {
         return ApiResponse.ok(commentService.createComment(commentDTO));
     }
 }

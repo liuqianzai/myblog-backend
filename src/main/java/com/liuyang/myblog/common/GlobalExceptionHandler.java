@@ -37,6 +37,39 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * Bean Validation 校验失败（DTO 上的 @NotBlank / @Size 等）。
+     * 把第一条失败原因回给前端，比笼统的「请求参数不合法」更有指导意义。
+     */
+    @ExceptionHandler(org.springframework.web.bind.MethodArgumentNotValidException.class)
+    public ResponseEntity<ApiResponse<Void>> handleValidationException(
+            org.springframework.web.bind.MethodArgumentNotValidException e) {
+        String message = e.getBindingResult().getFieldErrors().stream()
+                .map(error -> error.getDefaultMessage() == null
+                        ? error.getField() + " 不合法"
+                        : error.getDefaultMessage())
+                .findFirst()
+                .orElse("请求参数不合法");
+        log.warn("参数校验失败: {}", message);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.fail(400, message));
+    }
+
+    /**
+     * 直接放在方法参数上的约束（如 @PathVariable @Min(1)）校验失败。
+     */
+    @ExceptionHandler(jakarta.validation.ConstraintViolationException.class)
+    public ResponseEntity<ApiResponse<Void>> handleConstraintViolation(
+            jakarta.validation.ConstraintViolationException e) {
+        String message = e.getConstraintViolations().stream()
+                .map(violation -> violation.getMessage())
+                .findFirst()
+                .orElse("请求参数不合法");
+        log.warn("参数校验失败: {}", message);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.fail(400, message));
+    }
+
+    /**
      * 客户端请求本身有问题（路径参数类型错误、缺少必填参数、请求体格式错误、上传超限）
      * 统一归为 4xx：这类错误不是服务端故障，不该占用 500 的告警通道。
      */

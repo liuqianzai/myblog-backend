@@ -4,6 +4,7 @@ import com.liuyang.myblog.common.ApiResponse;
 import com.liuyang.myblog.domain.dto.TagDTO;
 import com.liuyang.myblog.domain.po.BlogTag;
 import com.liuyang.myblog.service.TagService;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -47,7 +48,7 @@ public class TagController {
      */
 
     @PostMapping
-    public ApiResponse<Long> createTag(@RequestBody TagDTO tagDTO) {
+    public ApiResponse<Long> createTag(@Valid @RequestBody TagDTO tagDTO) {
         return ApiResponse.ok(tagService.createTag(tagDTO));
     }
     /**
@@ -55,7 +56,7 @@ public class TagController {
      */
 
     @PutMapping("/{id}")
-    public ApiResponse<Void> updateTag(@PathVariable Long id, @RequestBody TagDTO tagDTO) {
+    public ApiResponse<Void> updateTag(@PathVariable Long id, @Valid @RequestBody TagDTO tagDTO) {
         tagService.updateTag(id, tagDTO);
         return ApiResponse.ok();
     }

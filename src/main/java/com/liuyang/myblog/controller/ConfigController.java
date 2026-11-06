@@ -4,6 +4,7 @@ import com.liuyang.myblog.common.ApiResponse;
 import com.liuyang.myblog.domain.dto.ConfigDTO;
 import com.liuyang.myblog.domain.vo.PublicConfigVO;
 import com.liuyang.myblog.service.ConfigService;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -50,7 +51,7 @@ public class ConfigController {
      */
 
     @PostMapping
-    public ApiResponse<Void> saveConfig(@RequestBody ConfigDTO configDTO) {
+    public ApiResponse<Void> saveConfig(@Valid @RequestBody ConfigDTO configDTO) {
         configService.saveConfig(configDTO);
         return ApiResponse.ok();
     }

@@ -28,7 +28,7 @@ public class ArticleController {
                                                            @RequestParam(required = false) String keyword,
                                                            @RequestParam(required = false) Long categoryId,
                                                            @RequestParam(required = false) Long tagId) {
-        return ApiResponse.ok(articleService.pageArticles(page, size, keyword, Boolean.TRUE, categoryId, tagId));
+        return ApiResponse.ok(articleService.pageArticles(page, size, keyword, Boolean.TRUE, categoryId, tagId, false));
     }
     /**
      * 获取文章

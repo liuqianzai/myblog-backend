@@ -56,7 +56,8 @@ public class ArticleServiceImpl implements ArticleService {
      */
 
     @Override
-    public PageResult<ArticleVO> pageArticles(Long page, Long size, String keyword, Boolean status, Long categoryId, Long tagId) {
+    public PageResult<ArticleVO> pageArticles(Long page, Long size, String keyword, Boolean status,
+                                               Long categoryId, Long tagId, boolean includeContent) {
         long pageNo = page == null || page < 1 ? 1 : page;
         long pageSize = size == null || size < 1 ? 10 : Math.min(size, 100);
         LambdaQueryWrapper<BlogArticle> wrapper = new LambdaQueryWrapper<BlogArticle>()
@@ -85,9 +86,14 @@ public class ArticleServiceImpl implements ArticleService {
             }
             wrapper.in(BlogArticle::getId, articleIds);
         }
+        if (!includeContent) {
+            // 连数据库都不去取正文：content 是 longtext，20 篇文章正文可能有上百 KB，
+            // 列表页只需要摘要，没必要把它们从 MySQL 一路拖到 JVM 再丢掉。
+            wrapper.select(BlogArticle.class, field -> !"content".equals(field.getColumn()));
+        }
 
         Page<BlogArticle> result = blogArticleMapper.selectPage(new Page<>(pageNo, pageSize), wrapper);
-        List<ArticleVO> records = fillTags(result.getRecords());
+        List<ArticleVO> records = fillTags(result.getRecords(), includeContent);
         return new PageResult<>(result.getTotal(), result.getCurrent(), result.getSize(), records);
     }
     /**
@@ -104,11 +110,12 @@ public class ArticleServiceImpl implements ArticleService {
             throw BusinessException.notFound("article not found");
         }
         if (increaseViewCount) {
-            int currentViewCount = article.getViewCount() == null ? 0 : article.getViewCount();
+            // 原子自增：把 "读出来 + 1 再写回去" 交给数据库一条 UPDATE 完成。
+            // 原来的 read-modify-write 在并发访问下会互相覆盖，阅读量总是偏小。
             blogArticleMapper.update(null, new LambdaUpdateWrapper<BlogArticle>()
                     .eq(BlogArticle::getId, id)
-                    .set(BlogArticle::getViewCount, currentViewCount + 1));
-            article.setViewCount(currentViewCount + 1);
+                    .setSql("view_count = COALESCE(view_count, 0) + 1"));
+            article.setViewCount(article.getViewCount() == null ? 1 : article.getViewCount() + 1);
         }
         ArticleVO articleVO = toVO(article);
         articleVO.setTags(getTags(id));
@@ -208,7 +215,7 @@ public class ArticleServiceImpl implements ArticleService {
      */
 
 
-    private List<ArticleVO> fillTags(List<BlogArticle> articles) {
+    private List<ArticleVO> fillTags(List<BlogArticle> articles, boolean includeContent) {
         if (articles == null || articles.isEmpty()) {
             return Collections.emptyList();
         }
@@ -222,8 +229,20 @@ public class ArticleServiceImpl implements ArticleService {
                 ? Collections.emptyMap()
                 : blogTagMapper.selectBatchIds(tagIds).stream().collect(Collectors.toMap(BlogTag::getId, tag -> tag));
 
+        // 分类同样一次性批量取出：原来在 toVO 里逐篇 selectById，
+        // 一页 10 篇就是 11 次查询（1 次分页 + 10 次分类），典型的 N+1。
+        List<Long> categoryIds = articles.stream()
+                .map(BlogArticle::getCategoryId)
+                .filter(java.util.Objects::nonNull)
+                .distinct()
+                .toList();
+        Map<Long, BlogCategory> categoryMap = categoryIds.isEmpty()
+                ? Collections.emptyMap()
+                : blogCategoryMapper.selectBatchIds(categoryIds).stream()
+                .collect(Collectors.toMap(BlogCategory::getId, category -> category));
+
         return articles.stream().map(article -> {
-            ArticleVO articleVO = toVO(article);
+            ArticleVO articleVO = toVO(article, categoryMap, includeContent);
             List<BlogTag> tags = relationMap.getOrDefault(article.getId(), Collections.emptyList()).stream()
                     .map(relation -> tagMap.get(relation.getTagId()))
                     .filter(tag -> tag != null)
@@ -258,11 +277,23 @@ public class ArticleServiceImpl implements ArticleService {
 
 
     private ArticleVO toVO(BlogArticle article) {
+        return toVO(article, null, true);
+    }
+
+    /**
+     * 组装文章视图对象。
+     *
+     * @param categoryMap    预加载的分类表；传入时不再逐条查库（供列表批量装配使用），
+     *                       传 null 则按需查询单条分类
+     * @param includeContent 是否下发正文。列表页只需要摘要，正文是 longtext，
+     *                       一页 10 篇就可能几百 KB，不该跟着列表一起传
+     */
+    private ArticleVO toVO(BlogArticle article, Map<Long, BlogCategory> categoryMap, boolean includeContent) {
         ArticleVO articleVO = new ArticleVO();
         articleVO.setId(article.getId());
         articleVO.setTitle(article.getTitle());
         articleVO.setSummary(article.getSummary());
-        articleVO.setContent(article.getContent());
+        articleVO.setContent(includeContent ? article.getContent() : null);
         articleVO.setCover(article.getCover());
         articleVO.setCategoryId(article.getCategoryId());
         articleVO.setViewCount(article.getViewCount());
@@ -271,7 +302,9 @@ public class ArticleServiceImpl implements ArticleService {
         articleVO.setCreateTime(article.getCreateTime());
         articleVO.setUpdateTime(article.getUpdateTime());
         if (article.getCategoryId() != null) {
-            BlogCategory category = blogCategoryMapper.selectById(article.getCategoryId());
+            BlogCategory category = categoryMap != null
+                    ? categoryMap.get(article.getCategoryId())
+                    : blogCategoryMapper.selectById(article.getCategoryId());
             articleVO.setCategory(category);
         }
         return articleVO;

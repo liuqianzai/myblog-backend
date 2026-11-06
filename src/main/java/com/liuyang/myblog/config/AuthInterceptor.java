@@ -65,7 +65,7 @@ public class AuthInterceptor implements HandlerInterceptor {
      * 哪些请求必须管理员身份。
      */
     private boolean requiresAdmin(HttpServletRequest request) {
-        String path = request.getServletPath();
+        String path = resolvePath(request);
         if (path.startsWith("/admin/")) {
             return true;
         }
@@ -79,6 +79,29 @@ public class AuthInterceptor implements HandlerInterceptor {
                 && !path.equals("/auth/password")
                 && !path.equals("/comments")
                 && !path.equals("/agent/pet/bubble");
+    }
+
+    /**
+     * 取出去掉 context-path 的请求路径。
+     *
+     * 不能只用 getServletPath()：在 MockMvc 等不走完整 Servlet 容器派发的场景下
+     * 它可能是空串，导致所有请求都被判定成「非公开路径」而统一返回 401。
+     * 这里以 getRequestURI 减去 contextPath 为准，getServletPath 作为兜底。
+     */
+    private String resolvePath(HttpServletRequest request) {
+        String servletPath = request.getServletPath();
+        if (servletPath != null && !servletPath.isEmpty()) {
+            return servletPath;
+        }
+        String requestUri = request.getRequestURI();
+        String contextPath = request.getContextPath();
+        if (requestUri == null) {
+            return "";
+        }
+        if (contextPath != null && !contextPath.isEmpty() && requestUri.startsWith(contextPath)) {
+            return requestUri.substring(contextPath.length());
+        }
+        return requestUri;
     }
 
     private boolean isAdmin(BlogUser user) {
@@ -97,7 +120,7 @@ public class AuthInterceptor implements HandlerInterceptor {
         if (HttpMethod.OPTIONS.matches(request.getMethod())) {
             return true;
         }
-        String path = request.getServletPath();
+        String path = resolvePath(request);
         if (path.equals("/comments") && HttpMethod.POST.matches(request.getMethod())) {
             return true;
         }

@@ -106,7 +106,7 @@ GET /articles?page=1&size=10&keyword=&categoryId=&tagId=
       "id": 1,
       "title": "文章标题",
       "summary": "摘要",
-      "content": "正文Markdown",
+      "content": null,
       "cover": "封面URL",
       "categoryId": 1,
       "viewCount": 42,
@@ -121,13 +121,17 @@ GET /articles?page=1&size=10&keyword=&categoryId=&tagId=
 }
 ```
 
+> 列表接口的 `content` 恒为 `null`：正文是 `longtext`，一页 10 篇就可能几百 KB。
+> 列表页只需要摘要，正文请调用 `GET /articles/{id}`。
+> 后台 `/admin/articles` 为保持既有行为不变，仍然返回正文。
+
 ### 2.2 前台 - 文章详情
 
 ```
 GET /articles/{id}
 ```
 
-阅读量自动 +1。
+阅读量自动 +1（数据库层面原子自增，并发访问不会互相覆盖）。
 
 ### 2.3 后台 - 文章列表
 
@@ -800,6 +804,9 @@ Header: Authorization: Bearer {token}
 ```json
 { "code": 400, "message": "错误描述", "data": null }
 ```
+
+参数校验失败时，`message` 会给出一条具体的中文提示（例如 `密码不能为空`、
+`颜色需为 #RGB 或 #RRGGBB 格式`），而不是笼统的「请求参数不合法」。
 
 常见错误码:
 
